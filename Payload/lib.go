@@ -118,6 +118,11 @@ func EncryptAES(key []byte, plaintext string) string {
 	return hex.EncodeToString(out)
 }
 
+func ToString(s interface{}) string {
+	return fmt.Sprint(s)
+}
+
+
 func Encrypt(s, key string) string {
 	var out string = ""
 	ss := Slice(s, 16)

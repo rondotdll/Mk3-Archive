@@ -96,10 +96,6 @@ func DumpService() []string {
 	return T
 }
 
-func ToString(s interface{}) string {
-	return fmt.Sprint(s)
-}
-
 func main() {
 	resp, _ := http.Get("https://myexternalip.com/raw")
 	defer resp.Body.Close()
