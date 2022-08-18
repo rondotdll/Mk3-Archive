@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Liveton.iml" filepath="$PROJECT_DIR$/.idea/Liveton.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/LivetonLite.iml" filepath="$PROJECT_DIR$/.idea/LivetonLite.iml" />
     </modules>
   </component>
 </project>

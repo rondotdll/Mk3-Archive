@@ -19,7 +19,6 @@ import (
 	"errors"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
-	_ "github.com/tawesoft/golib/v2/dialog"
 	"io"
 	"io/ioutil"
 	"log"
@@ -440,8 +439,4 @@ func GetPasswords() []PASSWD {
 
 func CleanUp() {
 	_ = os.RemoveAll(TempFileDir)
-}
-
-func main() {
-
 }

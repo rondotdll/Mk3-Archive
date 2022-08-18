@@ -9,7 +9,6 @@ import (
 	"log"
 	"math/rand"
 	"os"
-	"os/exec"
 	"os/user"
 	"regexp"
 	"strings"
@@ -130,27 +129,6 @@ func CryptSign(input, expected string) (hash, nonce string) {
 		}
 	}
 	return out, nonce
-}
-
-func GetBSSID() string {
-	out, err := exec.Command("cmd", "/c", "netsh wlan show interfaces").CombinedOutput()
-	if err != nil {
-		fmt.Println("Failed to find BSSID:", err)
-	}
-
-	Expression1, e := regexp.Compile("(BSSID[ \\t]*:[ \\t])(([0-9a-f]{2}([:]|)){6})")
-	Expression2, e := regexp.Compile("(([0-9a-f]{2}([:]|)){6})")
-	if e != nil {
-		log.Fatalf(e.Error())
-	}
-
-	var RegexFind []string = Expression2.FindAllString(Expression1.FindAllString(string(out), -1)[0], -1)
-
-	if len(RegexFind) == 0 || RegexFind[0] == "" {
-		return "None"
-	} else {
-		return RegexFind[0]
-	}
 }
 
 func EncryptAES(key []byte, plaintext string) string {
