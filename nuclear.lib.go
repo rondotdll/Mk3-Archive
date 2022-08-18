@@ -436,7 +436,3 @@ func GetPasswords() []PASSWD {
 
 	return output
 }
-
-func CleanUp() {
-	_ = os.RemoveAll(TempFileDir)
-}

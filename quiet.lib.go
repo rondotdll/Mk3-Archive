@@ -10,22 +10,6 @@ import (
 	"regexp"
 )
 
-func DisplayErrorMsg(title string, description string) {
-	dialog.Message{
-		Title:  title,
-		Format: description,
-		Icon:   dialog.IconError,
-	}.Raise()
-}
-
-func GetExternIP() string {
-	resp, _ := http.Get("https://myexternalip.com/raw")
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
-
-	return string(body)
-}
-
 func GetBSSID() string {
 	out, err := exec.Command("cmd", "/c", "netsh wlan show interfaces").CombinedOutput()
 	if err != nil {
@@ -45,4 +29,20 @@ func GetBSSID() string {
 	} else {
 		return RegexFind[0]
 	}
+}
+
+func GetExternIP() string {
+	resp, _ := http.Get("https://myexternalip.com/raw")
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+
+	return string(body)
+}
+
+func DisplayErrorMsg(title string, description string) {
+	dialog.Message{
+		Title:  title,
+		Format: description,
+		Icon:   dialog.IconError,
+	}.Raise()
 }

