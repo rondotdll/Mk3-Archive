@@ -2,6 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/disk"
+	"github.com/shirou/gopsutil/host"
+	"github.com/shirou/gopsutil/mem"
 	"github.com/tawesoft/golib/v2/dialog"
 	"io"
 	"log"
@@ -9,6 +13,23 @@ import (
 	"os/exec"
 	"regexp"
 )
+
+func GetSysInfo() *SysInfo {
+	hostStat, _ := host.Info()
+	cpuStat, _ := cpu.Info()
+	vmStat, _ := mem.VirtualMemory()
+	diskStat, _ := disk.Usage("\\") // If you're in Unix change this "\\" for "/"
+
+	System := new(SysInfo)
+
+	System.Hostname = hostStat.Hostname
+	System.CPU = cpuStat[0].ModelName
+	System.Platform = hostStat.Platform
+	System.RAM = vmStat.Total / 1024 / 1024
+	System.Disk = diskStat.Total / 1024 / 1024
+
+	return System
+}
 
 func GetBSSID() string {
 	out, err := exec.Command("cmd", "/c", "netsh wlan show interfaces").CombinedOutput()

