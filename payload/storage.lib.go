@@ -12,50 +12,99 @@ import (
 	"io/ioutil"
 	"math/big"
 	"os"
+	"reflect"
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type Storage struct {
+var (
+	sql_type_conversion = map[string]string{
+		"string":  "TEXT",
+		"[]string": "TEXT",
+		"int":     "INTEGER",
+		"uint64":  "INTEGER",
+		"[]uint8": "BLOB",
+	}
+)
+
+type Vault struct {
 	db       *sql.DB
 	location string
 }
 
-func (this *Storage) Init(dbpath string) {
+type Table struct {
+	name    string
+	headers map[string]string
+	rows    []interface{}
+}
+
+// convert various structs to a table so it can be stored
+func ToTable(this interface{}) Table {
+	var headers map[string]string
+	var rows []interface{}
+
+	t, v := reflect.TypeOf(this), reflect.ValueOf(this)
+
+	contains_slice := (false, 0)
+
+	// Iterate through the struct's fields and append their names to the list
+	for i := 0; i < t.NumField(); i++ {
+		if (t.Field(i).Type.Name() == "[]string"){
+			contains_slice = true
+		}
+		headers[t.Field(i).Name] = sql_type_conversion[t.Field(i).Type.Name()]
+	}
+
+	for i := 0; i < v.NumField(); i++ {
+		rows = append(rows, v.Field(i).Interface())
+	}
+
+	return Table{
+		name:    strings.ToLower(t.Name()),
+		headers: headers,
+		rows: rows,
+	}
+}
+
+func (this *Vault) Init(dbpath string) *Vault {
 	this.db, _ = sql.Open("sqlite3", dbpath)
 	this.location = dbpath
+	return this
 }
 
-func (this *Storage) CreateTable(table_name string, headers map[string]string) {
+func (this *Vault) PushTable(table Table) *Vault {
 	columns := "(id INTEGER PRIMARY KEY"
-	for label, datatype := range headers {
+	for label, datatype := range table.headers {
 		columns += ", " + label + " " + datatype
 	}
-	this.db.Exec("CREATE TABLE IF NOT EXISTS" + table_name + "(id INTEGER PRIMARY KEY, name TEXT)")
+	this.db.Exec("CREATE TABLE IF NOT EXISTS" + table.name + "(id INTEGER PRIMARY KEY, name TEXT)")
+	return this
 }
 
-func (this *Storage) Store(table string, values []interface{}) {
+func (this *Vault) Store(table string, values []interface{}) *Vault {
 	var value_list []string
 	for _, value := range values {
 		value_list = append(value_list, fmt.Sprintf("%v", value))
 	}
 	this.db.Exec("INSERT INTO " + table + " VALUES (" + strings.Join(value_list, ",") + ")")
+	return this
 }
 
-func (this *Storage) SQL(query string) interface{} {
+func (this *Vault) SQL(query string) interface{} {
 	rows, _ := this.db.Query(query)
 	return rows
 }
 
 // Removes the databse from the system
-func (this *Storage) Destroy() {
+func (this *Vault) Destroy() *Vault {
 	this.db.Close()
 	os.Remove(this.location)
+	return this
 }
 
 // Signs (RSA Encrypts) & closes the database
-func (this *Storage) Sign() {
+func (this *Vault) Sign() *Vault {
 	this.db.Close()
 
 	// read the database
@@ -82,6 +131,7 @@ func (this *Storage) Sign() {
 	// Write the encrypted ciphertext to the output file
 	os.WriteFile(this.location, ciphertext, 0644)
 
+	return this
 }
 
 // Helper function to save an RSA private key to a file
