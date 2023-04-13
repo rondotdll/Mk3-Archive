@@ -20,11 +20,11 @@ import (
 
 var (
 	sql_type_conversion = map[string]string{
-		"string":  "TEXT",
+		"string":   "TEXT",
 		"[]string": "TEXT",
-		"int":     "INTEGER",
-		"uint64":  "INTEGER",
-		"[]uint8": "BLOB",
+		"int":      "INTEGER",
+		"uint64":   "INTEGER",
+		"[]uint8":  "BLOB",
 	}
 )
 
@@ -36,34 +36,66 @@ type Vault struct {
 type Table struct {
 	name    string
 	headers map[string]string
-	rows    []interface{}
+	rows    [][]interface{}
 }
 
-// convert various structs to a table so it can be stored
+// Convert (most) structs and struct slices to a table so they can be stored
 func ToTable(this interface{}) Table {
-	var headers map[string]string
-	var rows []interface{}
+	output := Table{
+		headers: make(map[string]string),
+		rows:    make([][]interface{}, 0),
+	}
 
 	t, v := reflect.TypeOf(this), reflect.ValueOf(this)
+	output.name = t.Name()
 
-	contains_slice := (false, 0)
+	// if the input object is a slice
+	if output.name == "" && t.Kind() == reflect.Slice {
+		// iterate through the outer slice (each row)
+		for i := 0; i < v.Len(); i++ {
+			row := make([]interface{}, 0)
+			// iterate through row columns
+			for n := 0; n < v.Index(i).Type().NumField(); n++ {
+				// if the row is the first row
+				if i == 0 {
+					sqlType := sql_type_conversion[v.Index(0).Type().Field(n).Type.Name()]
+					output.headers[v.Index(0).Type().Field(n).Name] = sqlType
+				}
 
-	// Iterate through the struct's fields and append their names to the list
-	for i := 0; i < t.NumField(); i++ {
-		if (t.Field(i).Type.Name() == "[]string"){
-			contains_slice = true
+				println(v.Index(i).Field(n).Interface())
+				// append the current column to the current row
+				row = append(row, v.Index(i).Field(n).Interface())
+			}
+			output.rows = append(output.rows, row)
 		}
-		headers[t.Field(i).Name] = sql_type_conversion[t.Field(i).Type.Name()]
+
+	} else {
+		output.rows = make([][]interface{}, 0)
+
+		// iterate through the struct's property names
+		for n := 0; n < v.Type().NumField(); n++ {
+			sqlType := sql_type_conversion[v.Type().Field(n).Type.Name()]
+			output.headers[v.Type().Field(n).Name] = sqlType
+			output.rows[0] = append(output.rows[0], v.Interface())
+		}
 	}
 
-	for i := 0; i < v.NumField(); i++ {
-		rows = append(rows, v.Field(i).Interface())
-	}
+	return output
+}
 
-	return Table{
-		name:    strings.ToLower(t.Name()),
-		headers: headers,
-		rows: rows,
+func sformat(val interface{}) string {
+	value := reflect.ValueOf(val)
+	switch value.Kind() {
+	case reflect.String:
+		return fmt.Sprintf("%s ", value.String())
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return fmt.Sprintf("%d ", value.Int())
+	case reflect.Float32, reflect.Float64:
+		return fmt.Sprintf("%f ", value.Float())
+	case reflect.Bool:
+		return fmt.Sprintf("%t ", value.Bool())
+	default:
+		return fmt.Sprintf("%v ", value.Interface())
 	}
 }
 
@@ -73,21 +105,22 @@ func (this *Vault) Init(dbpath string) *Vault {
 	return this
 }
 
-func (this *Vault) PushTable(table Table) *Vault {
+// Pushes and stores a Table in the database
+func (this *Vault) StoreTable(table Table) *Vault {
 	columns := "(id INTEGER PRIMARY KEY"
-	for label, datatype := range table.headers {
-		columns += ", " + label + " " + datatype
+	for hname, htype := range table.headers {
+		columns += ", " + hname + " " + htype
 	}
-	this.db.Exec("CREATE TABLE IF NOT EXISTS" + table.name + "(id INTEGER PRIMARY KEY, name TEXT)")
-	return this
-}
+	this.db.Exec("CREATE TABLE IF NOT EXISTS" + table.name + columns + ")")
 
-func (this *Vault) Store(table string, values []interface{}) *Vault {
-	var value_list []string
-	for _, value := range values {
-		value_list = append(value_list, fmt.Sprintf("%v", value))
+	for _, row := range table.rows {
+		var values []string
+		for _, col := range row {
+			values = append(values, sformat(col))
+		}
+
+		this.db.Exec("INSERT INTO " + table.name + " VALUES (" + strings.Join(values, ",") + ")")
 	}
-	this.db.Exec("INSERT INTO " + table + " VALUES (" + strings.Join(value_list, ",") + ")")
 	return this
 }
 
