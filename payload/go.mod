@@ -7,7 +7,7 @@ require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/alessio/shellescape v1.4.1 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
-	github.com/mattn/go-sqlite3 v1.14.15 // indirect
+	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/tawesoft/golib/v2 v2.0.10 // indirect
 	github.com/vova616/screenshot v0.0.0-20220801010501-56c10359473c // indirect

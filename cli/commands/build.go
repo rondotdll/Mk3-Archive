@@ -104,21 +104,26 @@ func init() {
 				fmt.Println("How would you like to receive your goodies?")
 				fmt.Println("\n[1] By Email")
 				fmt.Println("\n[2] By Webhook")
-				fmt.Println("\n[3] I'm not interested in your 'goodies'.")
+				fmt.Println("\n[3] I'm not interested in my 'goodies'.")
 				res = Input("\nPlease select an option > ")
-				if res == "1" {
+				switch res {
+				case "1":
 					email = Input("Please enter the email address you would like them sent to\n   email > ")
 					for !IsValidEmail(email) {
 						fmt.Println(Red + "Invalid Email Address")
 						webhook = Input("Please enter the email address you would like them sent to\n   email > ")
 					}
-				} else if res == "2" {
+					break
+
+				case "2":
 					webhook = Input("Please paste the webhook url you would like them sent to\n   url > ")
 					for !IsValidURL(webhook) || !strings.Contains(webhook, "webhooks") {
 						fmt.Println(Red + "Invalid Webhook")
 						webhook = Input("Please paste the webhook url you would like them sent to\n   url > ")
 					}
-				} else if res == "3" {
+					break
+
+				case "3":
 					res = Input("Are you sure? > ")
 					if strings.HasPrefix(strings.ToLower(res), "y") {
 						Write("I mean", 15)
@@ -127,7 +132,8 @@ func init() {
 						WriteLn("you do you I guess.", 15)
 						Sleep(1000)
 					}
-				} else {
+					break
+				default:
 					fmt.Println(Red + "Invalid Response; Aborting..." + White)
 				}
 

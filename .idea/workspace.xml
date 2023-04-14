@@ -5,8 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="aa01c2df-e264-488c-8d6c-f19c67b948ad" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/gui/.vs/Mk3GUI/v17/.suo" beforeDir="false" afterPath="$PROJECT_DIR$/gui/.vs/Mk3GUI/v17/.suo" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gui/Mk3GUI/obj/Debug/Mk3GUI_MarkupCompile.cache" beforeDir="false" afterPath="$PROJECT_DIR$/gui/Mk3GUI/obj/Debug/Mk3GUI_MarkupCompile.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/payload/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/payload/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/payload/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/payload/go.sum" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,7 +40,10 @@
     "WebServerToolWindowFactoryState": "false",
     "go.import.settings.migrated": "true",
     "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "C:/Users/David/Documents/GitHub/Mk3/payload"
+    "last_opened_file_path": "C:/Users/David/Documents/GitHub/Mk3/payload",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
 }]]></component>
   <component name="RunManager">

@@ -14,9 +14,10 @@ type Command struct {
 }
 
 type Feature struct {
-	Name        string
-	Description string
-	Args        []Arg
+	Name         string
+	Description  string
+	Args         []Arg
+	Dependencies []string
 }
 
 type FeatureSet struct {
