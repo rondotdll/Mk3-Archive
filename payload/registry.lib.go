@@ -9,6 +9,7 @@ type PRODUCT_ID struct {
 	Type  string `json:"type"`
 }
 
+// self explanatory, gets the system's activation key and if it is OEM or Personal
 func GetProductKey() *PRODUCT_ID {
 	output := new(PRODUCT_ID)
 

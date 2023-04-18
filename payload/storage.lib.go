@@ -4,12 +4,8 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
-	"crypto/x509"
 	"database/sql"
-	"encoding/pem"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"math/big"
 	"os"
 	"reflect"
@@ -46,12 +42,14 @@ func ToTable(this interface{}) Table {
 		rows:    make([][]interface{}, 0),
 	}
 
+	// stores the type and value of `this` struct
 	t, v := reflect.TypeOf(this), reflect.ValueOf(this)
 	output.name = t.Name()
 
 	// if the input object is a slice
 	if output.name == "" && t.Kind() == reflect.Slice {
 		// iterate through the outer slice (each row)
+		output.name = v.Index(0).Type().Name() + "s"
 		for i := 0; i < v.Len(); i++ {
 			row := make([]interface{}, 0)
 			// iterate through row columns
@@ -83,6 +81,7 @@ func ToTable(this interface{}) Table {
 	return output
 }
 
+// converts `val` value to string
 func sformat(val interface{}) string {
 	value := reflect.ValueOf(val)
 	switch value.Kind() {
@@ -119,11 +118,12 @@ func (this *Vault) StoreTable(table Table) *Vault {
 			values = append(values, sformat(col))
 		}
 
-		this.db.Exec("INSERT INTO " + table.name + " VALUES (" + strings.Join(values, ",") + ")")
+		this.SQL("INSERT INTO " + table.name + " VALUES (" + strings.Join(values, ",") + ")")
 	}
 	return this
 }
 
+// runs custom SQL Query
 func (this *Vault) SQL(query string) interface{} {
 	rows, _ := this.db.Query(query)
 	return rows
@@ -165,52 +165,4 @@ func (this *Vault) Sign() *Vault {
 	os.WriteFile(this.location, ciphertext, 0644)
 
 	return this
-}
-
-// Helper function to save an RSA private key to a file
-func savePrivateKeyToFile(filename string, key *rsa.PrivateKey) error {
-	file, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	// Write the private key in PEM format to the file
-	if err := pem.Encode(file, &pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(key),
-	}); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Helper function to load an RSA private key from a file
-func loadPrivateKeyFromFile(filename string) (*rsa.PrivateKey, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	// Read the private key from the file in PEM format
-	pemBytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-
-	// Decode the PEM bytes to get the DER-encoded private key bytes
-	block, _ := pem.Decode(pemBytes)
-	if block == nil {
-		return nil, errors.New("failed to decode PEM block containing private key")
-	}
-
-	// Parse the DER-encoded private key bytes to get an RSA private key
-	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return key, nil
 }
