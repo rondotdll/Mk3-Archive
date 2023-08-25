@@ -28,6 +28,8 @@ var (
 	}
 )
 
+type Matrix [][]interface{}
+
 type Vault struct {
 	db       *sql.DB
 	location string
@@ -39,45 +41,63 @@ type Table struct {
 	rows    [][]interface{}
 }
 
-// Convert (most) structs and struct slices to a table so they can be stored
+// Convert (most) structs and struct slices to a table, so they can be stored in the database
+/* Alright, quick note from ron.dll
+ * This code is admittedly a bit of a mess, but just know it works.
+ * In order to keep this function from becoming a green soup, I'm going to
+ * explain how it works here.
+
+ * 1.) The first thing we do is create a new Table type, which is just a generic
+ *     struct that holds the table's name, headers, and rows.
+ * 2.) We then use reflection to get the type and value(s) of the input object.
+ * 3a.) If the input object is a slice, we first iterate through the outer slice
+ *  	  (each row) and then iterate through said row's columns.
+ * 3b.) If the input object is a struct, we iterate through the struct's property names.
+ * 3c.) If the input object is neither a slice nor a struct, we return an empty table.
+ * 4.) We then append the current column to the current row.
+ *
+ * Note this code will NOT work for any structs that contain slices, as the current code
+ * does not support nested slices.
+
+ */
+
 func ToTable(this interface{}) Table {
+	// 1
 	output := Table{
 		headers: make(map[string]string),
-		rows:    make([][]interface{}, 0),
+		rows:    make(Matrix, 0),
 	}
 
-	t, v := reflect.TypeOf(this), reflect.ValueOf(this)
-	output.name = t.Name()
+	// 2
+	datatype, value := reflect.TypeOf(this), reflect.ValueOf(this)
+	output.name = datatype.Name()
 
-	// if the input object is a slice
-	if output.name == "" && t.Kind() == reflect.Slice {
-		// iterate through the outer slice (each row)
-		for i := 0; i < v.Len(); i++ {
+	// 3a
+	if output.name == "" && datatype.Kind() == reflect.Slice {
+		for row_id := 0; row_id < value.Len(); row_id++ {
 			row := make([]interface{}, 0)
-			// iterate through row columns
-			for n := 0; n < v.Index(i).Type().NumField(); n++ {
-				// if the row is the first row
-				if i == 0 {
-					sqlType := sql_type_conversion[v.Index(0).Type().Field(n).Type.Name()]
-					output.headers[v.Index(0).Type().Field(n).Name] = sqlType
+			for col_id := 0; col_id < value.Index(row_id).Type().NumField(); col_id++ {
+				if row_id == 0 {
+					sqlType := sql_type_conversion[value.Index(0).Type().Field(col_id).Type.Name()]
+					output.headers[value.Index(0).Type().Field(col_id).Name] = sqlType
 				}
 
-				println(v.Index(i).Field(n).Interface())
-				// append the current column to the current row
-				row = append(row, v.Index(i).Field(n).Interface())
+				println(value.Index(row_id).Field(col_id).Interface())
+				row = append(row, value.Index(row_id).Field(col_id).Interface())
 			}
 			output.rows = append(output.rows, row)
 		}
-
+		// 3b
 	} else {
-		output.rows = make([][]interface{}, 0)
+		output.rows = make(Matrix, 0)
 
 		// iterate through the struct's property names
-		for n := 0; n < v.Type().NumField(); n++ {
-			sqlType := sql_type_conversion[v.Type().Field(n).Type.Name()]
-			output.headers[v.Type().Field(n).Name] = sqlType
-			output.rows[0] = append(output.rows[0], v.Interface())
+		for property_id := 0; property_id < value.Type().NumField(); property_id++ {
+			// FieldName = FieldType
+			output.headers[value.Type().Field(property_id).Name] = GetSQLDataType(value.Type().Field(property_id))
+			output.rows[0] = append(output.rows[0], value.Interface())
 		}
+
 	}
 
 	return output
@@ -103,6 +123,11 @@ func (this *Vault) Init(dbpath string) *Vault {
 	this.db, _ = sql.Open("sqlite3", dbpath)
 	this.location = dbpath
 	return this
+}
+
+// get's the corresponding SQL data type for a given Go struct field
+func GetSQLDataType(input reflect.StructField) string {
+	return sql_type_conversion[input.Type.Name()]
 }
 
 // Pushes and stores a Table in the database
