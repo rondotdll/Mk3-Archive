@@ -1,17 +1,22 @@
 package main
 
 import (
-	"Mk3CLI/commands"
-	"Mk3CLI/etc"
 	"fmt"
+	"mk3cli/etc"
+	"mk3cli/lib/commands"
+	. "mk3cli/lib/commands/base"
+	. "mk3cli/lib/features/base"
+	"strconv"
 )
 
 func main() {
-
-	fmt.Println(etc.Splash)
-	fmt.Println("\n" + etc.Info)
+	print(commands.Garbage)
+	fmt.Println(Splash)
+	fmt.Println("\n" + Info)
 	fmt.Println("Try running 'help' for a list of commands.\n")
+	DefaultHandler.SetPrompt("[III] " + strconv.Itoa(len(EnabledFeatures)) + "/" + strconv.Itoa(len(etc.Features)) + " ~> ")
 	for {
-		commands.Handle()
+		DefaultHandler.Handle(DefaultHandler.GetInput())
+		println()
 	}
 }

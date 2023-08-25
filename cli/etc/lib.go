@@ -3,6 +3,8 @@ package etc
 import (
 	"bufio"
 	"fmt"
+	. "mk3cli/lib/commands/base"
+	. "mk3cli/lib/features/base"
 	"net/mail"
 	"net/url"
 	"os"
@@ -114,19 +116,6 @@ func ClearConsole() {
 	}
 }
 
-func DisplayArgs(args []Arg) string {
-	output := " "
-
-	for _, a := range args {
-		if a.Required {
-			output += "<" + a.Name + " (" + Gray + a.Datatype + White + ")> "
-		} else {
-			output += "[" + a.Name + " (" + Gray + a.Datatype + White + ")] "
-		}
-	}
-	return output
-}
-
 func DisplayEnabledArgs(args []Arg, enabled []FeatureSetArg) string {
 	output := " "
 
@@ -139,11 +128,11 @@ func DisplayEnabledArgs(args []Arg, enabled []FeatureSetArg) string {
 		}
 
 		if a.Required {
-			output += "<" + a.Name + "=" + fmt.Sprintf("\""+Green+"%v"+White+"\"", enabledVal) + " (" + Gray + a.Datatype + White + ")> "
+			output += "<" + a.Name.Full + "=" + fmt.Sprintf("\""+Green+"%v"+White+"\"", enabledVal) + " (" + Gray + a.Datatype + White + ")> "
 		} else if !a.Required && x < len(enabled) {
-			output += "[" + a.Name + "=" + fmt.Sprintf("\""+Green+"%v"+White+"\"", enabledVal) + " (" + Gray + a.Datatype + White + ")] "
+			output += "[" + a.Name.Full + "=" + fmt.Sprintf("\""+Green+"%v"+White+"\"", enabledVal) + " (" + Gray + a.Datatype + White + ")] "
 		} else {
-			output += "[" + a.Name + " (" + Gray + a.Datatype + White + ")] "
+			output += "[" + a.Name.Full + " (" + Gray + a.Datatype + White + ")] "
 		}
 		x++
 	}

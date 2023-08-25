@@ -1,5 +1,10 @@
 package etc
 
+import (
+	. "mk3cli/lib/commands/base"
+	. "mk3cli/lib/features/base"
+)
+
 // This file is for keeping track of the currently supported Liveton feature set.
 
 var (
@@ -8,7 +13,14 @@ var (
 			Name:        "bsod",
 			Description: "Triggers a Blue Screen of Death when execution finishes.",
 			Args: []Arg{
-				{Name: "stopcode", Datatype: "string", Required: false},
+				{
+					Name: Name{
+						"stopcode",
+						"c",
+					},
+					Datatype: "int",
+					Required: false,
+				},
 			},
 			Dependencies: []string{
 				"system.lib.go",
@@ -48,8 +60,21 @@ var (
 			Name:        "error",
 			Description: "Displays a custom fake error message when execution finishes",
 			Args: []Arg{
-				{Name: "title", Datatype: "string", Required: true},
-				{Name: "description", Datatype: "string", Required: true},
+				{
+					Name: Name{
+						"title",
+						"t",
+					},
+					Datatype: "string",
+					Required: true,
+				}, {
+					Name: Name{
+						"description",
+						"d",
+					},
+					Datatype: "string",
+					Required: true,
+				},
 			},
 			Dependencies: []string{
 				"system.lib.go",
