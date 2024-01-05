@@ -1,9 +1,6 @@
 package s7cli
 
-import (
-	. "s7cli/commands"
-)
-
+// this file might not be needed, but I'm too tired to delete it.
 func init() {
-	DefaultHandler.Init()
+	return
 }

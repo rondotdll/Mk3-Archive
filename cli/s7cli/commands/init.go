@@ -1,6 +1,6 @@
 package commands
 
-// initialize the package upon import
+// actually initialize the default handler
 func init() {
 	DefaultHandler.Init()
 }
