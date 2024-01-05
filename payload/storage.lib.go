@@ -34,9 +34,10 @@ type Vault struct {
 }
 
 type Table struct {
+	// name the table's name.
 	name    string
-	headers map[string]string
-	rows    [][]interface{}
+	headers map[string]string // column name -> SQL type mapping
+	rows    Matrix
 }
 
 /*
@@ -67,25 +68,53 @@ headers = {
 
  */
 
+// ToTable converts anything into a Table.
 func ToTable(this interface{}) Table {
 	// 1
-	output := Table{
+	result := Table{
 		headers: make(map[string]string),
 		rows:    make(Matrix, 0),
 	}
 
-	// 2
+	// 2 - set the table's name to the name of the struct type.
 	datatype, value := reflect.TypeOf(this), reflect.ValueOf(this)
-	output.name = datatype.Name()
+	result.name = datatype.Name()
+
+	/*
+		headers = {
+			"column_A": "INTEGER",
+			"column_B": "TEXT",
+		}
+
+		rows = [
+			{ valueA: int, "valueB" },
+			{ 234, "something" }
+		]
+
+		{ <int>, <string> }
+		<int>, <string>
+		<int>, <string>
+		<int>, <string>
+		<int>, <string>
+
+
+
+	*/
 
 	// 3a
-	if output.name == "" && datatype.Kind() == reflect.Slice {
+	// if our input is a builtin data type (a slice)...
+	if result.name == "" && datatype.Kind() == reflect.Slice {
 		for row_id := 0; row_id < value.Len(); row_id++ {
-			row := make([]interface{}, 0)
-			for col_id := 0; col_id < value.Index(row_id).Type().NumField(); col_id++ {
+			row_result := make([]interface{}, 0)
+
+			// iterate through the value's fields...
+			for field_index := 0; field_index < value.Index(row_id).Type().NumField(); field_index++ {
 				if row_id == 0 {
-					sqlType := sql_type_conversion[value.Index(0).Type().Field(col_id).Type.Name()]
-					output.headers[value.Index(0).Type().Field(col_id).Name] = sqlType
+					// map the builtin type to an SQL equivalent.
+					sqlType := GetSQLDataType(value.Index(0).Type().Field(field_index))
+
+					// add the field name and the respective mapped type to result.headers.
+					result.headers[value.Index(0).Type().Field(field_index).Name] = sqlType
 				}
 
 				// used for debugging
@@ -93,22 +122,23 @@ func ToTable(this interface{}) Table {
 
 				row_result = append(row_result, value.Index(row_id).Field(field_index).Interface())
 			}
-			output.rows = append(output.rows, row)
+			result.rows = append(result.rows, row_result)
 		}
 		// 3b
 	} else {
-		output.rows = make(Matrix, 0)
+		// if the input is not a builtin data type...
+		result.rows = make(Matrix, 0)
 
 		// iterate through the struct's property names
-		for property_id := 0; property_id < value.Type().NumField(); property_id++ {
-			// FieldName = FieldType
-			output.headers[value.Type().Field(property_id).Name] = GetSQLDataType(value.Type().Field(property_id))
-			output.rows[0] = append(output.rows[0], value.Interface())
+		for field_index := 0; field_index < value.Type().NumField(); field_index++ {
+			// { FieldName: FieldType }
+			result.headers[value.Type().Field(field_index).Name] = GetSQLDataType(value.Type().Field(field_index))
+			result.rows[0] = append(result.rows[0], value.Interface())
 		}
 
 	}
 
-	return output
+	return result
 }
 
 // converts `val` value to string
@@ -158,13 +188,13 @@ func (this *Vault) StoreTable(table Table) *Vault {
 	return this
 }
 
-// runs custom SQL Query
+// SQL runs a custom SQL Query
 func (this *Vault) SQL(query string) interface{} {
 	rows, _ := this.db.Query(query)
 	return rows
 }
 
-// Removes the databse from the system
+// Destroy Removes the databse from the system
 func (this *Vault) Destroy() *Vault {
 	this.db.Close()
 	os.Remove(this.location)

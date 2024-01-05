@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
+	_ "mk3cli/commands"
+	_ "mk3cli/features"
+
 	s7cli "mk3cli/s7cli/commands"
 	feat "mk3cli/s7cli/features"
 )
