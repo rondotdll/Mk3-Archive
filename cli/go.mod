@@ -1,6 +1,10 @@
 module mk3cli
 
-go 1.19
+go 1.21.5
+
+replace mk3cli/s7cli => ./s7cli
+
+require mk3cli/s7cli v0.0.0-00010101000000-000000000000
 
 require (
 	github.com/c-bata/go-prompt v0.2.6 // indirect
