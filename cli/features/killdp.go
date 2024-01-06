@@ -9,6 +9,7 @@ func init() {
 	FeatureList = append(FeatureList, Feature{
 		Name:        "killdp",
 		Description: "Temporarily removes the system's desktop [kills explorer.exe]",
+		ReturnsData: false,
 		Args:        []Arg{},
 		Dependencies: []string{
 			"system.lib.go",

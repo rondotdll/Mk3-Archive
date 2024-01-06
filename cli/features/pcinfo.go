@@ -9,6 +9,7 @@ func init() {
 	FeatureList = append(FeatureList, Feature{
 		Name:        "pcinfo",
 		Description: "Grabs general basic system information",
+		ReturnsData: true,
 		Args:        []Arg{},
 		Dependencies: []string{
 			"system.lib.go",

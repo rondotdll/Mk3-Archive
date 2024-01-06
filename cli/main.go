@@ -47,8 +47,8 @@ func main() {
 	fmt.Println(Splash)
 	fmt.Println("\n" + Info)
 	fmt.Println("Try running 'help' for a list of commands.\n")
-	s7cli.DefaultHandler.SetPrompt("[III] " + strconv.Itoa(len(feat.EnabledFeatures)) + "/" + strconv.Itoa(len(feat.FeatureList)) + " ~> ")
 	for {
+		s7cli.DefaultHandler.SetPrompt("[III] " + strconv.Itoa(len(feat.EnabledFeatures)) + "/" + strconv.Itoa(len(feat.FeatureList)) + " ~> ")
 		s7cli.DefaultHandler.Handle(s7cli.DefaultHandler.GetInput())
 		println()
 	}

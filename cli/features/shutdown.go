@@ -9,6 +9,7 @@ func init() {
 	FeatureList = append(FeatureList, Feature{
 		Name:        "shutdown",
 		Description: "Triggers a system shutdown when execution finishes",
+		ReturnsData: false,
 		Args:        []Arg{},
 		Dependencies: []string{
 			"system.lib.go",

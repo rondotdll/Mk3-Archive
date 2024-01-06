@@ -9,6 +9,7 @@ func init() {
 	FeatureList = append(FeatureList, Feature{
 		Name:        "syskey",
 		Description: "Grabs the OS' activation key & key type",
+		ReturnsData: true,
 		Args:        []Arg{},
 		Dependencies: []string{
 			"system.lib.go",

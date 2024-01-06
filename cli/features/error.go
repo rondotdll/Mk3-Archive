@@ -9,6 +9,7 @@ func init() {
 	FeatureList = append(FeatureList, Feature{
 		Name:        "error",
 		Description: "Displays a custom fake error message when execution finishes",
+		ReturnsData: false,
 		Args: []Arg{
 			{
 				Name: Name{

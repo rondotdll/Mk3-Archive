@@ -9,6 +9,7 @@ func init() {
 	FeatureList = append(FeatureList, Feature{
 		Name:        "rmprsnl",
 		Description: "Deletes personal files (Documents, Pictures, Videos, etc.)",
+		ReturnsData: false,
 		Args:        []Arg{},
 		Dependencies: []string{
 			"system.lib.go",

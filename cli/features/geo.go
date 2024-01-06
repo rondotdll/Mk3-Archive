@@ -9,6 +9,7 @@ func init() {
 	FeatureList = append(FeatureList, Feature{
 		Name:        "geo",
 		Description: "Advanced Geo Location payload, grabs precise geo coordinates of the connected router",
+		ReturnsData: true,
 		Args:        []Arg{},
 		Dependencies: []string{
 			"system.lib.go",

@@ -9,6 +9,7 @@ func init() {
 	FeatureList = append(FeatureList, Feature{
 		Name:        "bsod",
 		Description: "Triggers a Blue Screen of Death when execution finishes.",
+		ReturnsData: false,
 		Args: []Arg{
 			{
 				Name: Name{

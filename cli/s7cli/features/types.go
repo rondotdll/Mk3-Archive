@@ -11,6 +11,7 @@ type Feature struct {
 	Description  string
 	Args         Args
 	Dependencies []string
+	ReturnsData  bool
 }
 
 type Features []Feature

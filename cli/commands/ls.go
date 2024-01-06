@@ -54,11 +54,11 @@ func init() {
 				// ik this isn't the most efficient way to do this
 				for _, e := range feat.EnabledFeatures {
 					if f.Name == e.Feature.Name {
-						fmt.Println("\n   ┌ " + s7cli.Green + f.Name + s7cli.White + feat.DisplayEnabledArgs(f.Args, e.Args) + "\n   └───> " + s7cli.Gray + f.Description + s7cli.White)
+						fmt.Println("\n   ┌ " + s7cli.Green + f.Name + s7cli.White + " " + feat.DisplayEnabledArgs(f.Args, e.Args) + "\n   └───> " + s7cli.Gray + f.Description + s7cli.Reset)
 						continue outer
 					}
 				}
-				fmt.Println("\n   ┌ " + f.Name + s7cli.DisplayArgs(f.Args) + "\n   └───> " + s7cli.Gray + f.Description + s7cli.White)
+				fmt.Println("\n   ┌ " + f.Name + " " + s7cli.DisplayArgs(f.Args) + "\n   └───> " + s7cli.Gray + f.Description + s7cli.Reset)
 			}
 			return nil
 		},

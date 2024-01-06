@@ -1,7 +1,6 @@
 package features
 
 var (
-	EnabledFeatures []FeatureSet
-
-	FeatureList = Features{}
+	EnabledFeatures = []FeatureSet{}
+	FeatureList     = Features{}
 )
