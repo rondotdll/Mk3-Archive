@@ -13,7 +13,7 @@ func FormatArgValues(args []FeatureSetArg) string {
 	var output string
 
 	for _, arg := range args {
-		output += fmt.Sprintf("  %s: %v\n", arg.Arg.Name, arg.Value)
+		output += fmt.Sprintf("  %s: %v\n", arg.Arg.Name.Full, arg.Value)
 	}
 
 	return strings.TrimSuffix(output, "\n")

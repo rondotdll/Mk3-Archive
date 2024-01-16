@@ -70,9 +70,17 @@ func (this Args) Parse(input []string) (parsed_args []interface{}, err int) {
 			output = append(output, strings.ReplaceAll(strings.ReplaceAll(buffer, "\"", ""), "'", ""))
 			break
 		case "int":
-			parsed, err := strconv.Atoi(argsRaw[base_arg_pos+arg_offset])
+			var err error
+			var parsed int64
+			var current_arg = argsRaw[base_arg_pos+arg_offset]
+
+			// Attempt to parse the integer in base 10 (regular number), if that fails, try base 16 (hex)
+			parsed, err = strconv.ParseInt(current_arg, 10, strconv.IntSize)
 			if err != nil {
-				return output, 1
+				parsed, err = strconv.ParseInt(strings.TrimPrefix(current_arg, "0x"), 16, strconv.IntSize)
+				if err != nil {
+					return output, 1
+				}
 			}
 			output = append(output, parsed)
 			break

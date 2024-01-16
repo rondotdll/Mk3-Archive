@@ -56,7 +56,7 @@ func init() {
 						}
 					}
 
-					f_args, f_err := feature.Args.Parse(input[len(input)-1:])
+					f_args, f_err := feature.Args.Parse(input[1:])
 
 					if f_err == 1 {
 						fmt.Println(s7cli.Red + "Invalid feat argument.\n" + s7cli.White + "Usage:\n  enable " + feature.Name + " " + s7cli.DisplayArgs(feature.Args))
