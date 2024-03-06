@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
@@ -16,6 +17,7 @@ import (
 	"os/exec"
 	"os/user"
 	"regexp"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -127,12 +129,28 @@ func GetScreenShot() Screenshot {
 	}
 }
 
+func GetIPLocation(ip string) *GeoLocation {
+	url := fmt.Sprintf("http://ip-api.com/json/%s", ip)
+	response, err := http.Get(url)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	defer response.Body.Close()
+
+	data, _ := io.ReadAll(response.Body)
+
+	geoLocation := new(GeoLocation)
+	json.Unmarshal(data, &geoLocation)
+
+	return geoLocation
+}
+
 // gets general system info & specs
 func GetSysInfo() *SysInfo {
 	hostStat, _ := host.Info()
 	cpuStat, _ := cpu.Info()
 	vmStat, _ := mem.VirtualMemory()
-	diskStat, _ := disk.Usage("\\") // If you're in Unix change this "\\" for "/"
+	diskStat, _ := disk.Usage(map[bool]string{true: "/", false: "\\"}[runtime.GOOS != "windows"]) //uses different slash formatting across different OS's
 
 	System := new(SysInfo)
 

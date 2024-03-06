@@ -1,10 +1,10 @@
 package main
 
-import "strconv"
-
 func main() {
+	vault := new(Vault)
+	vault.Init("")
 
-	println(strconv.Atoi("0xDEADBEEF"))
-
+	GetProductKey()
+	vault.StoreTable(ToTable(ExtractTokens()))
 	return
 }

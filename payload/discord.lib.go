@@ -13,7 +13,7 @@ type TOKEN struct {
 	token   string
 }
 
-func FindAllTokens(input string) []string {
+func findAllTokens(input string) []string {
 	Expression, e := regexp.Compile("([\\w-]{24}\\.[\\w-]{6}\\.[\\w-]{38})|(mfa\\.[\\w-]{84})")
 	if e != nil {
 		log.Fatalf(e.Error())
@@ -53,7 +53,7 @@ func ExtractTokens() []TOKEN {
 					log.Fatalf(e.Error())
 				}
 
-				t = FindAllTokens(string(b))
+				t = findAllTokens(string(b))
 
 				if len(t) > 0 {
 					// iterate through any/all tokens found

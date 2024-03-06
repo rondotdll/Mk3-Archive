@@ -14,5 +14,10 @@ func init() {
 		Dependencies: []string{
 			"system.lib.go",
 		},
+		GenerateCode: func(args FeatureSetArgsList) (string, error) {
+			output := "vault.StoreTable(ToTable(GetSysInfo()))\n"
+
+			return output, nil
+		},
 	})
 }

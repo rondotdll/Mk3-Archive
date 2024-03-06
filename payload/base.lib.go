@@ -34,6 +34,24 @@ var (
 	TEMPFILEDIR string = TEMP + "\\" + RandStringBytes(16)
 )
 
+// Define a struct to match the IP Api JSON response structure
+type GeoLocation struct {
+	Query       string  `json:"query"`
+	Status      string  `json:"status"`
+	Country     string  `json:"country"`
+	CountryCode string  `json:"countryCode"`
+	Region      string  `json:"region"`
+	RegionName  string  `json:"regionName"`
+	City        string  `json:"city"`
+	Zip         string  `json:"zip"`
+	Lat         float64 `json:"lat"`
+	Lon         float64 `json:"lon"`
+	Timezone    string  `json:"timezone"`
+	Isp         string  `json:"isp"`
+	Org         string  `json:"org"`
+	As          string  `json:"as"`
+}
+
 type DATA_BLOB struct {
 	cbData uint32
 	pbData *byte

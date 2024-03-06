@@ -80,27 +80,6 @@ func ToTable(this interface{}) Table {
 	datatype, value := reflect.TypeOf(this), reflect.ValueOf(this)
 	result.name = datatype.Name()
 
-	/*
-		headers = {
-			"column_A": "INTEGER",
-			"column_B": "TEXT",
-		}
-
-		rows = [
-			{ valueA: int, "valueB" },
-			{ 234, "something" }
-		]
-
-		{ <int>, <string> }
-		<int>, <string>
-		<int>, <string>
-		<int>, <string>
-		<int>, <string>
-
-
-
-	*/
-
 	// 3a
 	// if our input is a builtin data type (a slice)...
 	if result.name == "" && datatype.Kind() == reflect.Slice {

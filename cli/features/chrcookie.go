@@ -16,5 +16,10 @@ func init() {
 			"browsers.lib.go",
 			"storage.lib.go",
 		},
+		GenerateCode: func(args FeatureSetArgsList) (string, error) {
+			output := "vault.StoreTable(ToTable(GetCookies()))\n"
+
+			return output, nil
+		},
 	})
 }
